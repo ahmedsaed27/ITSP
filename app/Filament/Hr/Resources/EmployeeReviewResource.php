@@ -4,8 +4,8 @@ namespace App\Filament\Hr\Resources;
 
 use App\Filament\Hr\Resources\EmployeeReviewResource\Pages;
 use App\Filament\Hr\Resources\EmployeeReviewResource\RelationManagers;
-use App\Models\Employee;
 use App\Models\EmployeeReview;
+use App\Models\Employees;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\MarkdownEditor;
@@ -34,7 +34,7 @@ class EmployeeReviewResource extends Resource
                 ->schema([
                     Select::make('employees_id')
                     ->label('employee')
-                    ->options(Employee::all()->pluck('name' , 'id'))
+                    ->options(Employees::all()->pluck('name' , 'id'))
                     ->required(),
                     TextInput::make('month')->required()->numeric(),
 
@@ -58,6 +58,7 @@ class EmployeeReviewResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
