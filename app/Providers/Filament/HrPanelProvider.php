@@ -18,47 +18,32 @@ use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
-
-class AdminPanelProvider extends PanelProvider
+class HrPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->default()
-            ->id('admin')
-            ->path('/')
-            ->login()
+            ->id('hr')
+            ->path('hr')
+            ->brandName('ITSP-Hr')
+            ->authGuard('hr')
+            ->authPasswordBroker('employees')
             ->emailVerification()
             ->passwordReset()
-            ->brandName('ITSP')
-            ->authGuard('web')
+            ->login()
             ->colors([
-                // 'primary' => Color::Amber,
                 'primary' => Color::hex('#3b82f6'),
             ])
-            // ->plugin(
-            //     BreezyCore::make()
-            //     ->myProfile(
-            //         shouldRegisterUserMenu: true, // Sets the 'account' link in the panel User Menu (default = true)
-            //         shouldRegisterNavigation: true, // Adds a main navigation item for the My Profile page (default = false)
-            //         navigationGroup: 'Settings', // Sets the navigation group for the My Profile page (default = null)
-            //         hasAvatars: false, // Enables the avatar upload form component (default = false)
-            //         slug: 'my-profile' // Sets the slug for the profile page (default = 'my-profile')
-            //     )
-            //     ->enableTwoFactorAuthentication(
-            //         force: true, // force the user to enable 2FA before they can use the application (default = false)
-            //     )
-            // )
             ->databaseNotifications()
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+            ->discoverResources(in: app_path('Filament/Hr/Resources'), for: 'App\\Filament\\Hr\\Resources')
+            ->discoverPages(in: app_path('Filament/Hr/Pages'), for: 'App\\Filament\\Hr\\Pages')
             ->pages([
                 Pages\Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
+            ->discoverWidgets(in: app_path('Filament/Hr/Widgets'), for: 'App\\Filament\\Hr\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
-                // Widgets\FilamentInfoWidget::class,
+                Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -73,6 +58,6 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ])->spa();
+            ]);
     }
 }
