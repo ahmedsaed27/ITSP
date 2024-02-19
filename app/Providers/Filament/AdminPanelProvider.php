@@ -34,7 +34,6 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('ITSP')
             ->authGuard('web')
             ->colors([
-                // 'primary' => Color::Amber,
                 'primary' => Color::hex('#3b82f6'),
             ])
             ->plugin(
@@ -46,9 +45,9 @@ class AdminPanelProvider extends PanelProvider
                     hasAvatars: false, // Enables the avatar upload form component (default = false)
                     slug: 'my-profile' // Sets the slug for the profile page (default = 'my-profile')
                 )
-                ->enableTwoFactorAuthentication(
-                    force: true, // force the user to enable 2FA before they can use the application (default = false)
-                )
+                // ->enableTwoFactorAuthentication(
+                //     force: true, // force the user to enable 2FA before they can use the application (default = false)
+                // )
             )
             ->databaseNotifications()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
