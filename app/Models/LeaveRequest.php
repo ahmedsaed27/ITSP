@@ -6,23 +6,26 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use function App\Helpers\calculation;
+
 class LeaveRequest extends Model
 {
     use HasFactory;
 
     protected $table = 'leave_request';
 
-    protected $fillable = ['date', 'employees_id' , 'note' , 'status'];
+    protected $fillable = ['date', 'dayes_count', 'user_id', 'note', 'status'];
 
     public $timestamps = true;
 
-    public function employee(){
-        return $this->belongsTo(Employees::class , 'employees_id');
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function getStatusAttribute($value)
     {
-        $value = match($value){
+        $value = match ($value) {
             0 => 'waiting',
             1 => 'acceptable',
             2 => 'rejected',
@@ -31,36 +34,30 @@ class LeaveRequest extends Model
         return $value;
     }
 
-    public static function boot() {
+    public static function boot()
+    {
 
-		parent::boot();
+        parent::boot();
 
-		static::updated(function($model) {
+        static::updating(function ($model) {
 
-            if($model->status == 'acceptable'){
+            if ($model->status == 'acceptable') {
 
-                $vacation = Vacations::where('employees_id', $model->employees_id)->first();
+                $vacation = auth()->user()->vacations;
 
-                list($startDate, $endDate) = explode(' - ', $model->date);
-
-                $carbonStartDate = Carbon::createFromFormat('d/m/Y', $startDate);
-                $carbonEndDate = Carbon::createFromFormat('d/m/Y', $endDate);
-
-                $dayesCount = $carbonStartDate->diffInDays($carbonEndDate);
+                $dayesCount = calculation($model->date);
 
 
                 Vacations::updateOrCreate(
-                    ['employees_id' => $model->employees_id],
+                    ['user_id' => $model->user_id],
                     [
+                        'leave_request_id' => $model->leave_request_id,
                         'total' => 21,
-                        // 'public_holidays' => 0,
                         'expire' => optional($vacation)->expire + $dayesCount,
                         'available' => optional($vacation)->available ?? 21 - $dayesCount,
                     ]
                 );
-
-
             }
-		});
-	}
+        });
+    }
 }

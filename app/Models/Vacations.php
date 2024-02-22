@@ -11,12 +11,12 @@ class Vacations extends Model
 
     protected $table = 'vacations';
 
-    protected $fillable = ['total' , 'expire' , 'available' , 'employees_id' , 'from' , 'to'];
+    protected $fillable = ['total' , 'expire' , 'available' , 'user_id'];
 
     public $timestamps = true;
 
-    public function employee(){
-        return $this->belongsTo(Employees::class , 'employees_id');
+    public function user(){
+        return $this->belongsTo(User::class , 'user_id');
     }
 
 }

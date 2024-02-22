@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Employees extends Authenticatable
 {
@@ -16,16 +17,20 @@ class Employees extends Authenticatable
 
     protected $guard_name = 'hr';
 
-    protected $fillable = ['name' , 'email' , 'password' , 'phone' , 'address' , 'gander' , 'education' , 'position_type' , 'skils' , 'departments_id'];
+    protected $fillable = [ 'user_id','phone' , 'address' , 'gander' , 'college' , 'university' , 'Specialization' , 'position_type' , 'skils' , 'departments_id'];
 
     public $timestamps = true;
 
     protected $casts = [
-        'address' => 'array',
         'skils' => 'array',
     ];
 
     public function department(){
         return $this->belongsTo(Departments::class , 'departments_id');
     }
+
+    public function user(){
+        return $this->belongsTo(User::class , 'user_id');
+    }
+
 }

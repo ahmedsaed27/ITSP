@@ -13,11 +13,12 @@ return new class extends Migration
     {
         Schema::create('leave_request', function (Blueprint $table) {
             $table->id();
+            $table->integer('dayes_count');
             $table->string('date');
-            // $table->date('to');
-            $table->foreignId('employees_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->longText('note');
             $table->tinyInteger('status')->comment('0 => waiting , 1 => Acceptable , 2 => Rejected');
+            $table->text('answer')->nullable();
             $table->timestamps();
         });
     }

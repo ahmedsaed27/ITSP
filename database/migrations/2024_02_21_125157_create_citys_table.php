@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('vacations', function (Blueprint $table) {
+        Schema::create('citys', function (Blueprint $table) {
             $table->id();
-            $table->integer('total')->default(21);
-            // $table->integer('public_holidays')->default(0);
-            $table->integer('expire');
-            $table->integer('available');
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
+            $table->string('city');
+            $table->string('admin_name');
+            $table->string('capital')->nullable();
             $table->timestamps();
         });
     }
@@ -27,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('vacations');
+        Schema::dropIfExists('citys');
     }
 };

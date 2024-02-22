@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
-use App\Models\Departments;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -22,6 +21,7 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         $this->call(Department::class);
-        $this->call(employee::class);
+        $this->call(User::class);
+        $this->call(Citys::class);
     }
 }

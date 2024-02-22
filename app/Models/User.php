@@ -22,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'type'
     ];
 
     /**
@@ -43,4 +44,29 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+
+    public function employee()
+    {
+        return $this->hasOne(Employees::class, 'user_id');
+    }
+
+    public function vacations()
+    {
+        return $this->hasOne(Vacations::class, 'user_id');
+    }
+
+    // public function getTypeAttribute($value)
+    // {
+    //     $value = match ($value) {
+    //         0 => 'Admin',
+    //         1 => 'Employee',
+    //         2 => 'Hr',
+    //     };
+
+    //     return $value;
+    // }
+
+
+
 }

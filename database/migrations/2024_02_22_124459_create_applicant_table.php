@@ -11,14 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('applicant', function (Blueprint $table) {
             $table->id();
+            $table->string('cv');
             $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->string('email');
             $table->string('password');
-            $table->integer('type')->comment('0 => admin , 1 => employee , 2 => hr , 3 => developer');
-            $table->rememberToken();
+            $table->string('phone')->index();
+            $table->foreignId('citys_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
+            $table->string('area');
+            $table->string('birthYear');
+            $table->boolean('gender');
+            $table->string('images');
             $table->timestamps();
         });
     }
@@ -28,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('applicant');
     }
 };
