@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('review', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('apply_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
+            $table->unsignedBigInteger('apply_id');
+            $table->foreign('apply_id')->references('id')->on('apply')->cascadeOnDelete()->cascadeOnUpdate();
             $table->tinyInteger('status');
             $table->longText('note');
             $table->timestamps();
