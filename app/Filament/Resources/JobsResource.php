@@ -94,15 +94,15 @@ class JobsResource extends Resource
                 TextColumn::make('postion')->searchable(),
                 TextColumn::make('job_level')->formatStateUsing(function(string $state){
                     return $state == 0 ? 'jonuir' : ($state == 1 ? 'Senior' : 'Mid level');
-                })->searchable(),
+                })->searchable()->badge(),
 
                 TextColumn::make('job_type')->formatStateUsing(function(string $state){
                     return $state == 0 ? 'Full Time' : 'Part Time';
-                })->searchable(),
+                })->searchable()->badge(),
 
                 TextColumn::make('job_place')->formatStateUsing(function(string $state){
                     return $state == 0 ? 'remotly' : ($state == 1 ? 'on site' : 'Hybrid');
-                })->searchable(),
+                })->searchable()->badge(),
 
                 TextColumn::make('range_salary')->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('skills')->toggleable(isToggledHiddenByDefault: true),

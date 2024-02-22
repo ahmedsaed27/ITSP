@@ -1,0 +1,69 @@
+{
+    "name": "malzariey/filament-daterangepicker-filter",
+    "description": "This package uses daterangepciker library to filter date by a range or predefined date ranges (Today , Yesterday ...etc)",
+    "keywords": [
+        "Malzariey",
+        "laravel",
+        "filament-daterangepicker-filter"
+    ],
+    "homepage": "https://github.com/malzariey/filament-daterangepicker-filter",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Majid Al-Zariey",
+            "email": "malzariey@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "filament/filament": "^2.0|^3.0",
+        "spatie/laravel-package-tools": "^1.15",
+        "illuminate/contracts": "^8.0|^9.0|^10.0"
+    },
+    "require-dev": {
+        "nunomaduro/collision": "^7.0.0",
+        "pestphp/pest": "^2.0",
+        "pestphp/pest-plugin-laravel": "^2.1",
+        "pestphp/pest-plugin-livewire": "^2.0",
+        "phpunit/phpunit": "^10.0.0",
+        "spatie/laravel-ray": "^1.26"
+    },
+    "autoload": {
+        "psr-4": {
+            "Malzariey\\FilamentDaterangepickerFilter\\": "src",
+            "Malzariey\\FilamentDaterangepickerFilter\\Database\\Factories\\": "database/factories"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Malzariey\\FilamentDaterangepickerFilter\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test:pest": "vendor/bin/pest --parallel",
+        "test": [
+            "@test:pest"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Malzariey\\FilamentDaterangepickerFilter\\FilamentDaterangepickerFilterServiceProvider"
+            ],
+            "aliases": {
+                "FilamentDaterangepickerFilter": "Malzariey\\FilamentDaterangepickerFilter\\Facades\\FilamentDaterangepickerFilter"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
