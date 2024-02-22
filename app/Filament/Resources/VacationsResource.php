@@ -18,6 +18,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Malzariey\FilamentDaterangepickerFilter\Fields\DateRangePicker;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
@@ -113,5 +114,20 @@ class VacationsResource extends Resource
             'create' => Pages\CreateVacations::route('/create'),
             'edit' => Pages\EditVacations::route('/{record}/edit'),
         ];
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return false;
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return false; 
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return false;
     }
 }
