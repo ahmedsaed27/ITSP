@@ -56,6 +56,11 @@ class User extends Authenticatable
         return $this->hasOne(Vacations::class, 'user_id');
     }
 
+    public function leave()
+    {
+        return $this->hasMany(LeaveRequest::class, 'user_id');
+    }
+
     // public function getTypeAttribute($value)
     // {
     //     $value = match ($value) {

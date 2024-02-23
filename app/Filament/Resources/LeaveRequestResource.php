@@ -40,22 +40,27 @@ class LeaveRequestResource extends Resource
                     DateRangePicker::make('date')->label('from - to')->required()->rules([
                         function () {
                             return function (string $attribute, $value, Closure $fail) {
-                    
+
                                 list($startDate, $endDate) = explode(' - ', $value);
-                                
+
                                 $startDate = Carbon::createFromFormat('d/m/Y', $startDate);
                                 $endDate = Carbon::createFromFormat('d/m/Y', $endDate);
                                 $diffInDays = $startDate->diffInDays($endDate);
                                 $dayesCount = $diffInDays > 0 ? $diffInDays : 1;
 
-                                
-                                // if ($startDate->eq($endDate)) {
-                                //     return;
-                                // }
-                    
+
+                                if ($dayesCount > 21) {
+                                    return $fail('No more than 21 days of leave should be requested');
+                                }
+
                                 if (Carbon::now()->format('d/m/Y') > $startDate->format('d/m/Y')) {
                                     $fail('The :attribute is invalid.');
                                 }
+
+                                if(auth()->user()->vacations == null){
+                                    return;
+                                }
+
 
                                 if($dayesCount > auth()->user()->vacations->available){
                                     $fail('Your available vacations are only '.auth()->user()->vacations->available.' days');
@@ -63,7 +68,7 @@ class LeaveRequestResource extends Resource
                             };
                         },
                     ]),
-                    
+
                     MarkdownEditor::make('note'),
                 ])
             ]);
@@ -106,11 +111,11 @@ class LeaveRequestResource extends Resource
                     $record->update([
                         'status' => 1
                     ]);
-                }) 
+                })
                 ->icon('heroicon-o-check-badge')
                 ->color('success')
                 ->hidden(fn(LeaveRequest $record) => $record->status !== 'waiting'),
-               
+
 
                 Action::make('rejected')
                 ->requiresConfirmation()
