@@ -136,7 +136,7 @@ class CreateUsers extends CreateRecord
                         ->rules([
                             function () {
                                 return function (string $attribute, $value, Closure $fail) {
-                                    if (!in_array($value , [1 , 2])) {
+                                    if (!in_array($value , [1 , 2 , 3])) {
                                         $fail('The :attribute is invalid.');
                                     }
                                 };

@@ -89,11 +89,20 @@ class EditUsers extends EditRecord
                         TextInput::make('email')->unique(table:'users' , column:'email' , ignorable: $this->record)->email()->required(),
 
                         Select::make('type')
-                        ->label('department')
+                        ->label('roles')
                         ->options([
                             1 => 'Employee',
                             2 => 'Hr',
                             3 => 'developer',
+                        ])
+                        ->rules([
+                            function () {
+                                return function (string $attribute, $value, Closure $fail) {
+                                    if (!in_array($value , [1 , 2 , 3])) {
+                                        $fail('The :attribute is invalid.');
+                                    }
+                                };
+                            },
                         ])
                         ->searchable()
                         ->required()
@@ -149,11 +158,11 @@ class EditUsers extends EditRecord
                     ->relationship('employee')
                     ->schema([
                         MarkdownEditor::make('position_type')->required()->columnSpan(2),
-                        // Select::make('departments_id')
-                        // ->label('department')
-                        // ->options(Departments::all()->pluck('name' , 'id'))
-                        // ->searchable()
-                        // ->required()
+                        Select::make('departments_id')
+                        ->label('department')
+                        ->options(Departments::all()->pluck('name' , 'id'))
+                        ->searchable()
+                        ->required()
                     ])->columns(),
                 ]),
         ];

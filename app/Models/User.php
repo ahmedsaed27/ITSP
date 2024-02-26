@@ -73,34 +73,21 @@ class User extends Authenticatable
     // }
 
 
-    // public static function boot()
-    // {
-    //     parent::boot();
-    //     // dd('ahmed');
-    //     static::created(function ($model) {
+    public static function boot()
+    {
+        parent::boot();
 
-    //     //    foreach($model as $user){
-    //     //         vacations::create([
-    //     //             'total' => 21,
-    //     //             'expire' => 0,
-    //     //             'available' => 21,
-    //     //             'user_id' => $user->id,
-    //     //         ]);
-    //     //    }
-    //         // $model->vacations()->create([
-    //         //     'total' => 21,
-    //         //     'expire' => 0,
-    //         //     'available' => 21,
-    //         // ]);
+        static::created(function ($model) {
 
-    //         // vacations::create([
-    //         //     'total' => 21,
-    //         //     'expire' => 0,
-    //         //     'available' => 21,
-    //         //     'user_id' => $model->id,
-    //         // ]);
-    //     });
-    // }
+            Vacations::create([
+                'user_id' => $model->id,
+                'total' => 21,
+                'expire' => 0,
+                'available' => 21,
+            ]);
+
+        });
+    }
 
 
 
