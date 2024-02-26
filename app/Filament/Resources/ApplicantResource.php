@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ApplicantResource\Pages;
 use App\Filament\Resources\ApplicantResource\RelationManagers;
+use App\Infolists\Components\ApplicantCv;
 use App\Models\Applicant;
 use App\Models\Citys;
 use Filament\Forms;
@@ -33,6 +34,8 @@ use Filament\Infolists\Components\Split;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Pages\Page;
+use Filament\Infolists\Components\Actions\Action as InfolistAction;
+use Illuminate\Database\Eloquent\Model;
 
 class ApplicantResource extends Resource
 {
@@ -167,11 +170,17 @@ class ApplicantResource extends Resource
                     ]),
                     Split::make([
                         InfolistSection::make('Attacment')
-                        ->icon('heroicon-o-information-circle')
+                        ->icon('heroicon-o-paper-clip')
                         ->schema([
-                            ImageEntry::make('cv')
-                                ->disk('applicant')
-                                ->grow(false),
+                            ApplicantCv::make('cv')
+                            ->columnSpan(2)
+                            ->hintAction(
+                                InfolistAction::make('download')
+                                    ->icon('heroicon-m-arrow-down-tray')
+                                    ->action(function (Model $record) {
+                                        return response()->download(public_path('assets/applicant/'.$record->cv));
+                                    })
+                            ),
                         ])
                         ->columns(2),
                         InfolistSection::make('Dates')
@@ -217,6 +226,6 @@ class ApplicantResource extends Resource
     {
         $userType = auth()->user()->type;
 
-        return $userType == 0 || $userType == 2 || $userType == 3;
+        return $userType == 0 || $userType == 2;
     }
 }

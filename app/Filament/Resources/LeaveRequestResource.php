@@ -81,7 +81,14 @@ class LeaveRequestResource extends Resource
                 TextColumn::make('user.name')->searchable(),
                 TextColumn::make('date'),
                 TextColumn::make('note')->wrap()->words(20)->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('status')->badge(),
+                TextColumn::make('answer')->wrap()->words(20)->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('status')
+                ->badge()
+                ->color(fn (string $state): string => match ($state) {
+                    'waiting' => 'warning',
+                    'acceptable' => 'success',
+                    'rejected' => 'danger',
+                }),
             ])
             ->filters([
                 //

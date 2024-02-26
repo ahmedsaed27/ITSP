@@ -70,7 +70,7 @@ class UsersResource extends Resource
                         '0' => 'Admin',
                         '1' => 'Employee',
                         '2' => 'Hr',
-                        '3' => 'developer'
+                        '3' => 'Modirator'
                     };
 
                     return $value;
@@ -209,6 +209,6 @@ class UsersResource extends Resource
     {
         $userType = auth()->user()->type;
 
-        return $userType == 0 || $userType == 2 || $userType == 3;
+        return $userType == 0 || $userType == 2;
     }
 }

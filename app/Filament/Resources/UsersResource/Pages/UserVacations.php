@@ -112,8 +112,15 @@ class UserVacations extends ManageRelatedRecords
             ->recordTitleAttribute('name')
             ->columns([
                 Tables\Columns\TextColumn::make('date'),
-                Tables\Columns\TextColumn::make('status')->badge(),
+                Tables\Columns\TextColumn::make('status')
+                ->badge()
+                ->color(fn (string $state): string => match ($state) {
+                    'waiting' => 'warning',
+                    'acceptable' => 'success',
+                    'rejected' => 'danger',
+                }),
                 Tables\Columns\TextColumn::make('note')->wrap()->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('answer')->wrap()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
@@ -164,10 +171,14 @@ class UserVacations extends ManageRelatedRecords
 
 
                 Action::make('rejected')
+                ->form([
+                    MarkdownEditor::make('answer')->required()
+                ])
                 ->requiresConfirmation()
-                ->action(function (Model $record) {
+                ->action(function (Model $record , array $data) {
                     $record->update([
-                        'status' => 2
+                        'status' => 2,
+                        'answer' => $data['answer'],
                     ]);
                 })
                 ->color('danger')

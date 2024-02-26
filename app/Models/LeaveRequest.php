@@ -14,7 +14,7 @@ class LeaveRequest extends Model
 
     protected $table = 'leave_request';
 
-    protected $fillable = ['date', 'user_id', 'note', 'status'];
+    protected $fillable = ['date', 'user_id', 'note', 'status' , 'answer'];
 
     public $timestamps = true;
 

@@ -97,6 +97,6 @@ class CategoryResource extends Resource
     {
         $userType = auth()->user()->type;
 
-        return $userType == 0 || $userType == 1 || $userType == 3;
+        return $userType == 0 || $userType == 3;
     }
 }

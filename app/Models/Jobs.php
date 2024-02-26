@@ -12,11 +12,11 @@ class Jobs extends Model
     protected $table = 'jobs';
 
     protected $fillable = ['image' , 'postion' , 'discription' , 'job_level' ,
-                            'job_type' , 'job_place' , 'range_salary' 
+                            'job_type' , 'job_place' , 'range_salary'
                              , 'skills' , 'requirments'
                             ];
 
-    public $timestamps = true;                        
+    public $timestamps = true;
 
     protected $casts = [
         'skills' => 'array'

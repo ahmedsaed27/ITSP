@@ -68,11 +68,11 @@ class CreateUsers extends CreateRecord
             $employee = new Employees($userInfo);
             $user->employee()->save($employee);
 
-            $user->vacations()->create([
-                'total' => 21,
-                'expire' => 0,
-                'available' => 21,
-            ]);
+            // $user->vacations()->create([
+            //     'total' => 21,
+            //     'expire' => 0,
+            //     'available' => 21,
+            // ]);
 
             DB::commit();
 
@@ -125,10 +125,11 @@ class CreateUsers extends CreateRecord
                         TextInput::make('email')->unique(table:'users' , column:'email')->email()->required(),
 
                         Select::make('type')
-                        ->label('department')
+                        ->label('roles')
                         ->options([
                             1 => 'employee',
                             2 => 'Hr',
+                            3 => 'Modirator',
                         ])
                         ->searchable()
                         ->required()
@@ -185,12 +186,12 @@ class CreateUsers extends CreateRecord
                 ->schema([
                     Section::make()
                     ->schema([
-                        MarkdownEditor::make('position_type')->required()->columnSpan(2),
-                        // Select::make('departments_id')
-                        // ->label('department')
-                        // ->options(Departments::all()->pluck('name' , 'id'))
-                        // ->searchable()
-                        // ->required()
+                        MarkdownEditor::make('position_type')->required(),
+                        Select::make('departments_id')
+                        ->label('department')
+                        ->options(Departments::all()->pluck('name' , 'id'))
+                        ->searchable()
+                        ->required()
                     ])->columns(),
                 ])
 

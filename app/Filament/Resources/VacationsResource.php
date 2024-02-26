@@ -143,7 +143,7 @@ class VacationsResource extends Resource
     {
         $userType = auth()->user()->type;
 
-        return $userType == 0 || $userType == 2 || $userType == 3;
+        return $userType == 0 || $userType == 2;
     }
 
 }
