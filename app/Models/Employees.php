@@ -17,17 +17,13 @@ class Employees extends Authenticatable
 
     protected $guard_name = 'hr';
 
-    protected $fillable = [ 'user_id','phone' , 'address' , 'gander' , 'college' , 'university' , 'Specialization' , 'position_type' , 'skils' , 'departments_id'];
+    protected $fillable = [ 'user_id','phone' , 'address' , 'gander' , 'college' , 'university' , 'Specialization' , 'position_type' , 'skils'];
 
     public $timestamps = true;
 
     protected $casts = [
         'skils' => 'array',
     ];
-
-    public function department(){
-        return $this->belongsTo(Departments::class , 'departments_id');
-    }
 
     public function user(){
         return $this->belongsTo(User::class , 'user_id');

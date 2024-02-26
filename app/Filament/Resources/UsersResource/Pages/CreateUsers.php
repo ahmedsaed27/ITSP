@@ -73,7 +73,7 @@ class CreateUsers extends CreateRecord
                 'expire' => 0,
                 'available' => 21,
             ]);
-     
+
             DB::commit();
 
             return $user;
@@ -89,9 +89,9 @@ class CreateUsers extends CreateRecord
             ->title('Error')
             ->body('An error occurred. Contact the developers')
             ->send();
-            
+
         }
-        
+
     }
 
     protected function afterCreate(): void
@@ -125,17 +125,17 @@ class CreateUsers extends CreateRecord
                         TextInput::make('email')->unique(table:'users' , column:'email')->email()->required(),
 
                         Select::make('type')
+                        ->label('department')
                         ->options([
                             1 => 'employee',
                             2 => 'Hr',
-                            3 => 'developer',
                         ])
                         ->searchable()
                         ->required()
                         ->rules([
                             function () {
                                 return function (string $attribute, $value, Closure $fail) {
-                                    if (!in_array($value , [1 , 2 , 3])) {
+                                    if (!in_array($value , [1 , 2])) {
                                         $fail('The :attribute is invalid.');
                                     }
                                 };
@@ -145,7 +145,7 @@ class CreateUsers extends CreateRecord
 
                         TextInput::make('password')->confirmed()->password()->revealable()->required(),
                         TextInput::make('password_confirmation')->password(),
-                        
+
                     ])->columns(),
                 ]),
 
@@ -185,12 +185,12 @@ class CreateUsers extends CreateRecord
                 ->schema([
                     Section::make()
                     ->schema([
-                        MarkdownEditor::make('position_type')->required(),
-                        Select::make('departments_id')
-                        ->label('department')
-                        ->options(Departments::all()->pluck('name' , 'id'))
-                        ->searchable()
-                        ->required()
+                        MarkdownEditor::make('position_type')->required()->columnSpan(2),
+                        // Select::make('departments_id')
+                        // ->label('department')
+                        // ->options(Departments::all()->pluck('name' , 'id'))
+                        // ->searchable()
+                        // ->required()
                     ])->columns(),
                 ])
 

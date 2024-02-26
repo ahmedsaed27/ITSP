@@ -9,6 +9,7 @@ use App\Models\Vacations;
 use Carbon\Carbon;
 use Closure;
 use Filament\Forms;
+use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
@@ -40,13 +41,13 @@ class VacationsResource extends Resource
                             ->options(User::all()->pluck('name' , 'id'))
                             ->searchable()
                             ->required(),
-                            
+
                             DateRangePicker::make('date')->label('from - to')->required()->rules([
                                 function (Get $get) {
                                     return function (string $attribute, $value, Closure $fail) use($get) {
-                            
+
                                         list($startDate, $endDate) = explode(' - ', $value);
-                                        
+
                                         $startDate = Carbon::createFromFormat('d/m/Y', $startDate);
                                         $endDate = Carbon::createFromFormat('d/m/Y', $endDate);
                                         $diffInDays = $startDate->diffInDays($endDate);
@@ -58,18 +59,23 @@ class VacationsResource extends Resource
                                            return $fail('You must choose an employee');
                                         }
 
-        
-                                        if (Carbon::now()->format('d/m/Y') > $startDate->format('d/m/Y')) {
-                                          return  $fail('The :attribute is invalid.');
+
+                                        if (Carbon::now()->startOfDay()->equalTo($startDate->startOfDay()) || !Carbon::now()->greaterThan($startDate)) {
+                                            return;
+                                        }else {
+                                            $fail('The :attribute is invalid.');
                                         }
 
-                                        
+
                                         if ($dayesCount > $user->vacations->available) {
                                             $fail('Your available vacations are only ' . $user->vacations->available . ' days');
                                         }
                                     };
                                 },
-                            ]),    
+                            ]),
+
+                        MarkdownEditor::make('note')->columnSpan(2),
+
                     ])->columns(2)
             ]);
     }
@@ -123,11 +129,21 @@ class VacationsResource extends Resource
 
     public static function canDelete(Model $record): bool
     {
-        return false; 
+        return false;
     }
 
     public static function canDeleteAny(): bool
     {
         return false;
     }
+
+
+
+    public static function canViewAny(): bool
+    {
+        $userType = auth()->user()->type;
+
+        return $userType == 0 || $userType == 2 || $userType == 3;
+    }
+
 }

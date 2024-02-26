@@ -44,11 +44,11 @@ return [
             'throw' => false,
         ],
 
-        
+
         'applicant' => [
             'driver' => 'local',
             'root' => public_path('assets/applicant'),
-            'url' => env('APP_URL').'/assets/files',
+            'url' => env('APP_URL').'/assets/applicant',
             'visibility' => 'public',
             'throw' => false,
         ],

@@ -14,6 +14,7 @@ use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
@@ -48,12 +49,9 @@ class LeaveRequestResource extends Resource
                                 $diffInDays = $startDate->diffInDays($endDate);
                                 $dayesCount = $diffInDays > 0 ? $diffInDays : 1;
 
-
-                                if ($dayesCount > 21) {
-                                    return $fail('No more than 21 days of leave should be requested');
-                                }
-
-                                if (Carbon::now()->format('d/m/Y') > $startDate->format('d/m/Y')) {
+                                if (Carbon::now()->startOfDay()->equalTo($startDate->startOfDay()) || !Carbon::now()->greaterThan($startDate)) {
+                                    return;
+                                }else {
                                     $fail('The :attribute is invalid.');
                                 }
 
@@ -77,7 +75,7 @@ class LeaveRequestResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            // ->query(static::$model::where('id' , auth()->guard('hr')->id()))
+            ->query(static::$model::where('user_id' , auth()->id()))
             ->columns([
                 TextColumn::make('id')->label('#'),
                 TextColumn::make('user.name')->searchable(),
@@ -92,41 +90,53 @@ class LeaveRequestResource extends Resource
                 // Tables\Actions\EditAction::make(),
                 // Tables\Actions\DeleteAction::make(),
 
-                Action::make('accept')
-                ->requiresConfirmation()
-                ->action(function (LeaveRequest $record) {
+                // Action::make('accept')
+                // ->requiresConfirmation()
+                // ->action(function (LeaveRequest $record) {
 
-                    $vacation = auth()->user()->vacations;
+                //     $vacation = $record->user->vacations;
 
-                    list($startDate, $endDate) = explode(' - ', $record->date);
+                //     list($startDate, $endDate) = explode(' - ', $record->date);
 
-                    $carbonStartDate = Carbon::createFromFormat('d/m/Y', $startDate);
-                    $carbonEndDate = Carbon::createFromFormat('d/m/Y', $endDate);
-                    $diffInDays = $carbonStartDate->diffInDays($carbonEndDate);
+                //     $carbonStartDate = Carbon::createFromFormat('d/m/Y', $startDate);
+                //     $carbonEndDate = Carbon::createFromFormat('d/m/Y', $endDate);
+                //     $diffInDays = $carbonStartDate->diffInDays($carbonEndDate);
 
-                    if($diffInDays > $vacation->available){
-                        $this->halt();
-                    }
+                //     if(!Carbon::now()->startOfDay()->equalTo($carbonStartDate->startOfDay()) && Carbon::now()->greaterThan($carbonStartDate)){
+                //         return Notification::make()
+                //             ->danger()
+                //             ->title('invalid date')
+                //             ->send();
+                //     }
 
-                    $record->update([
-                        'status' => 1
-                    ]);
-                })
-                ->icon('heroicon-o-check-badge')
-                ->color('success')
-                ->hidden(fn(LeaveRequest $record) => $record->status !== 'waiting'),
+                //     if($vacation  !== null){
+                //         if($diffInDays > $vacation->available){
+                //             return Notification::make()
+                //             ->danger()
+                //             ->title('only have '.$vacation->available.' available')
+                //             ->send();
+                //         }
+                //     }
+
+                //     $record->update([
+                //         'status' => 1
+                //     ]);
+                // })
+                // ->icon('heroicon-o-check-badge')
+                // ->color('success')
+                // ->hidden(fn(LeaveRequest $record) => $record->status !== 'waiting'),
 
 
-                Action::make('rejected')
-                ->requiresConfirmation()
-                ->action(function (LeaveRequest $record) {
-                    $record->update([
-                        'status' => 2
-                    ]);
-                })
-                ->color('danger')
-                ->icon('heroicon-o-x-circle')
-                ->hidden(fn(LeaveRequest $record) => $record->status !== 'waiting'),
+                // Action::make('rejected')
+                // ->requiresConfirmation()
+                // ->action(function (LeaveRequest $record) {
+                //     $record->update([
+                //         'status' => 2
+                //     ]);
+                // })
+                // ->color('danger')
+                // ->icon('heroicon-o-x-circle')
+                // ->hidden(fn(LeaveRequest $record) => $record->status !== 'waiting'),
 
 
 
@@ -154,5 +164,12 @@ class LeaveRequestResource extends Resource
             'create' => Pages\CreateLeaveRequest::route('/create'),
             'edit' => Pages\EditLeaveRequest::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        $userType = auth()->user()->type;
+
+        return $userType == 0 || $userType == 1 || $userType == 3;
     }
 }

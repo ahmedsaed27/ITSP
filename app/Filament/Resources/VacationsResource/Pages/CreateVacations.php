@@ -28,11 +28,17 @@ class CreateVacations extends CreateRecord
 
         $model = static::getModel()::where('user_id', $data['user_id'])->first();
 
-        
+
         if ($model) {
             $model->update([
                 'expire' => $model->expire + $dayesCount,
                 'available' => ($model->available ?? 21) - $dayesCount,
+            ]);
+            
+            $model->user->leave()->create([
+                'date' => $data['date'],
+                'note' => 'test',
+                'status' => 1,
             ]);
         }
 

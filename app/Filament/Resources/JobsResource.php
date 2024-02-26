@@ -29,7 +29,7 @@ class JobsResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    
+
     public static function form(Form $form): Form
     {
         return $form
@@ -54,7 +54,7 @@ class JobsResource extends Resource
                                 1 => 'Part Time',
                             ])
                             ->searchable()
-                            ->required(),   
+                            ->required(),
 
 
                         Select::make('job_place')
@@ -64,9 +64,9 @@ class JobsResource extends Resource
                                 3 => 'Hybrid'
                             ])
                             ->searchable()
-                            ->required(),     
-                            
-                        TextInput::make('range_salary')->required(), 
+                            ->required(),
+
+                        TextInput::make('range_salary')->required(),
 
                         TagsInput::make('skills')
                         ->splitKeys(['Tab', ' ']),
@@ -77,7 +77,7 @@ class JobsResource extends Resource
 
                     ])->columns(2)
                 ])
-                ->columnSpan(2),    
+                ->columnSpan(2),
 
                 Group::make()
                 ->schema([
@@ -144,5 +144,12 @@ class JobsResource extends Resource
             'create' => Pages\CreateJobs::route('/create'),
             'edit' => Pages\EditJobs::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        $userType = auth()->user()->type;
+
+        return $userType == 0 || $userType == 2 || $userType == 3;
     }
 }

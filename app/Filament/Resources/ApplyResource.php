@@ -101,4 +101,11 @@ class ApplyResource extends Resource
             'edit' => Pages\EditApply::route('/{record}/edit'),
         ];
     }
+
+    public static function canViewAny(): bool
+    {
+        $userType = auth()->user()->type;
+
+        return $userType == 0 || $userType == 2 || $userType == 3;
+    }
 }

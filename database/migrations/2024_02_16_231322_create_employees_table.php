@@ -25,7 +25,7 @@ return new class extends Migration
             $table->text('Specialization');
             $table->string('position_type');
             $table->longText('skils');
-            $table->foreignId('departments_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
+            // $table->foreignId('departments_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->timestamps();
         });
     }

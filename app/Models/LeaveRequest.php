@@ -23,7 +23,7 @@ class LeaveRequest extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function getStatusAttribute($value)
+    public function getStatusAttribute(int $value)
     {
         $value = match ($value) {
             0 => 'waiting',
@@ -43,7 +43,7 @@ class LeaveRequest extends Model
 
             if ($model->status == 'acceptable') {
 
-                $vacation = auth()->user()->vacations;
+                $vacation = $model->user->vacations;
 
                 $dayesCount = calculation($model->date);
 
@@ -54,7 +54,28 @@ class LeaveRequest extends Model
                         'leave_request_id' => $model->leave_request_id,
                         'total' => 21,
                         'expire' => optional($vacation)->expire + $dayesCount,
-                        'available' => optional($vacation)->available ?? 21 - $dayesCount,
+                        'available' => optional($vacation)->available - $dayesCount,
+                    ]
+                );
+            }
+        });
+
+        static::created(function ($model) {
+
+            if ($model->status == 'acceptable') {
+
+                $vacation = $model->user->vacations;
+
+                $dayesCount = calculation($model->date);
+
+
+                Vacations::updateOrCreate(
+                    ['user_id' => $model->user_id],
+                    [
+                        'leave_request_id' => $model->leave_request_id,
+                        'total' => 21,
+                        'expire' => optional($vacation)->expire + $dayesCount,
+                        'available' => optional($vacation)->available - $dayesCount,
                     ]
                 );
             }

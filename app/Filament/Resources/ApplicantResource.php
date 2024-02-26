@@ -23,6 +23,16 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 
+use Filament\Infolists;
+use Filament\Infolists\Components\Grid;
+use Filament\Infolists\Components\Group as InfolistGroup;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\Section as InfolistSection;
+use Filament\Infolists\Components\Split;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
+use Filament\Pages\Page;
 
 class ApplicantResource extends Resource
 {
@@ -91,6 +101,7 @@ class ApplicantResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 // Tables\Actions\DeleteAction::make(),
 
@@ -118,7 +129,7 @@ class ApplicantResource extends Resource
                         })
                 ]),
 
-                
+
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -127,6 +138,62 @@ class ApplicantResource extends Resource
             ]);
     }
 
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                InfolistSection::make()
+                    ->schema([
+                        Split::make([
+                            Grid::make(2)
+                                ->schema([
+                                    InfolistGroup::make([
+                                        TextEntry::make('name'),
+                                        TextEntry::make('email')->badge()->copyable()->icon('heroicon-m-envelope'),
+                                        TextEntry::make('phone')->label('Phone')->copyable()->badge()->icon('heroicon-o-device-phone-mobile'),
+
+                                    ]),
+                                    InfolistGroup::make([
+                                        TextEntry::make('city.city')->label('City')->copyable()->badge()->icon('heroicon-o-device-phone-mobile'),
+                                        TextEntry::make('gender')->formatStateUsing(fn (string $state): string => $state == 0 ? 'female' : 'male')->label('Gander')->badge(),
+                                        TextEntry::make('area')->label('Address')->badge()->copyable()->icon('heroicon-o-home-modern'),
+                                    ]),
+                                ]),
+                                ImageEntry::make('images')
+                                ->disk('applicant')
+                                ->circular()
+                                ->grow(false),
+                        ])->from('lg'),
+                    ]),
+                    Split::make([
+                        InfolistSection::make('Attacment')
+                        ->icon('heroicon-o-information-circle')
+                        ->schema([
+                            ImageEntry::make('cv')
+                                ->disk('applicant')
+                                ->grow(false),
+                        ])
+                        ->columns(2),
+                        InfolistSection::make('Dates')
+                        ->icon('heroicon-o-calendar')
+                        ->schema([
+                            TextEntry::make('created_at')
+                                ->label('Created At')
+                                ->icon('heroicon-o-calendar-days')
+                                ->dateTime(),
+
+                                TextEntry::make('updated_at')
+                                ->label('Updated At')
+                                ->icon('heroicon-o-calendar-days')
+                                ->dateTime(),
+
+                        ])
+                        ->grow(false),
+                    ])->columnSpan(2)
+            ]);
+    }
+
+
     public static function getRelations(): array
     {
         return [
@@ -134,12 +201,22 @@ class ApplicantResource extends Resource
         ];
     }
 
+
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListApplicants::route('/'),
             'create' => Pages\CreateApplicant::route('/create'),
+            'view' => Pages\ApplicantView::route('/{record}'),
             'edit' => Pages\EditApplicant::route('/{record}/edit'),
         ];
+    }
+
+
+    public static function canViewAny(): bool
+    {
+        $userType = auth()->user()->type;
+
+        return $userType == 0 || $userType == 2 || $userType == 3;
     }
 }

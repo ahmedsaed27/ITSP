@@ -136,4 +136,12 @@ class ProjectsResource extends Resource
             'edit' => Pages\EditProjects::route('/{record}/edit'),
         ];
     }
+
+
+    public static function canViewAny(): bool
+    {
+        $userType = auth()->user()->type;
+
+        return $userType == 0 || $userType == 1 || $userType == 3;
+    }
 }

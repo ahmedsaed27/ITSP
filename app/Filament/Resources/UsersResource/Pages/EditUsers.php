@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\Hash;
 class EditUsers extends EditRecord
 {
     use HasWizard;
-    
+
 
     protected static string $resource = UsersResource::class;
 
@@ -89,6 +89,7 @@ class EditUsers extends EditRecord
                         TextInput::make('email')->unique(table:'users' , column:'email' , ignorable: $this->record)->email()->required(),
 
                         Select::make('type')
+                        ->label('department')
                         ->options([
                             1 => 'Employee',
                             2 => 'Hr',
@@ -113,7 +114,7 @@ class EditUsers extends EditRecord
                         TextInput::make('phone')
                         ->required()
                         ->numeric(),
-                    
+
                         Select::make('gander')
                         ->options([
                             0 => 'female',
@@ -122,7 +123,7 @@ class EditUsers extends EditRecord
                         ->required(),
 
 
-                        TextInput::make('address')->required()
+                        TextInput::make('address')->required()->columnSpan(2)
                     ])->columns(),
 
 
@@ -135,7 +136,7 @@ class EditUsers extends EditRecord
                     ->schema([
                         TextInput::make('college')->required(),
                         TextInput::make('university')->required(),
-                        TextInput::make('Specialization')->required(),                        
+                        TextInput::make('Specialization')->required(),
                         TagsInput::make('skils')
                         ->suggestions(Skills::all()->pluck('title' , 'title')->flatten())
                         ->required()
@@ -147,12 +148,12 @@ class EditUsers extends EditRecord
                     Group::make()
                     ->relationship('employee')
                     ->schema([
-                        MarkdownEditor::make('position_type')->required(),
-                        Select::make('departments_id')
-                        ->label('department')
-                        ->options(Departments::all()->pluck('name' , 'id'))
-                        ->searchable()
-                        ->required()
+                        MarkdownEditor::make('position_type')->required()->columnSpan(2),
+                        // Select::make('departments_id')
+                        // ->label('department')
+                        // ->options(Departments::all()->pluck('name' , 'id'))
+                        // ->searchable()
+                        // ->required()
                     ])->columns(),
                 ]),
         ];
