@@ -121,7 +121,9 @@ class ApplyResource extends Resource
                                     InfolistGroup::make([
                                         TextEntry::make('job.postion')->label('Postion')->copyable()->badge()->icon('heroicon-o-device-phone-mobile'),
                                         TextEntry::make('job.job_level')->formatStateUsing(fn (string $state): string => $state == 0 ? 'female' : 'male')->label('Gander')->badge(),
-                                        TextEntry::make('job.job_type')->label('Job Type')->badge()->copyable()->icon('heroicon-o-home-modern'),
+                                        TextEntry::make('job.job_type')->label('Job Type')->formatStateUsing(function(string $state){
+                                            return $state == 0 ? 'Full Time' : 'Part Time';
+                                        })->badge()->copyable()->icon('heroicon-o-home-modern'),
                                         TextEntry::make('job.job_place')->label('Job Place')->badge()->copyable()->icon('heroicon-o-home-modern'),
                                         TextEntry::make('job.range_salary')->label('Range Salary')->badge()->copyable()->icon('heroicon-o-home-modern'),
                                         TextEntry::make('job.skills')->label('Skills')->badge()->copyable()->icon('heroicon-o-home-modern'),

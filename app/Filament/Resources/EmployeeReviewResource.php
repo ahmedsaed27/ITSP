@@ -6,6 +6,7 @@ use App\Filament\Resources\EmployeeReviewResource\Pages;
 use App\Filament\Resources\EmployeeReviewResource\RelationManagers;
 use App\Models\EmployeeReview;
 use App\Models\Employees;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\MarkdownEditor;
@@ -34,7 +35,7 @@ class EmployeeReviewResource extends Resource
                 ->schema([
                     Select::make('employees_id')
                     ->label('employee')
-                    ->options(Employees::all()->pluck('name' , 'id'))
+                    ->options(User::all()->pluck('name' , 'id'))
                     ->required(),
                     TextInput::make('month')->required()->numeric(),
 

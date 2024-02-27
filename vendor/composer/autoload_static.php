@@ -37,11 +37,11 @@ class ComposerStaticInit6d490a6a310cea6733709b5e128cb5e4
         '9720327d09ed9a4ba00c9b5071b71c7d' => __DIR__ . '/..' . '/danharrin/date-format-converter/src/standards.php',
         '2ad94ea6f6f6013119e9abcf4e302a08' => __DIR__ . '/..' . '/filament/forms/src/helpers.php',
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
-        'def43f6c87e4f8dfd0c9e1b1bab14fe8' => __DIR__ . '/..' . '/symfony/polyfill-iconv/bootstrap.php',
         'b69d5f1f95cd1ed438c038b6cbcc45b5' => __DIR__ . '/..' . '/filament/notifications/src/Testing/Autoload.php',
-        '2cffec82183ee1cea088009cef9a6fc3' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
+        'def43f6c87e4f8dfd0c9e1b1bab14fe8' => __DIR__ . '/..' . '/symfony/polyfill-iconv/bootstrap.php',
         '89e9938b64b06cc502d7ceca69a380fe' => __DIR__ . '/..' . '/filament/filament/src/global_helpers.php',
         'ebb446bb6d02e998480945fbbb73dc64' => __DIR__ . '/..' . '/filament/filament/src/helpers.php',
+        '2cffec82183ee1cea088009cef9a6fc3' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
         '3bd81c9b8fcc150b69d8b63b4d2ccf23' => __DIR__ . '/..' . '/spatie/flare-client-php/src/helpers.php',
         '9b38cf48e83f5d8f60375221cd213eee' => __DIR__ . '/..' . '/phpstan/phpstan/bootstrap.php',
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
@@ -127,6 +127,7 @@ class ComposerStaticInit6d490a6a310cea6733709b5e128cb5e4
             'Spatie\\FlareClient\\' => 19,
             'Spatie\\Color\\' => 13,
             'Spatie\\Backtrace\\' => 17,
+            'Saade\\FilamentFullCalendar\\' => 27,
         ),
         'R' => 
         array (
@@ -471,6 +472,10 @@ class ComposerStaticInit6d490a6a310cea6733709b5e128cb5e4
         'Spatie\\Backtrace\\' => 
         array (
             0 => __DIR__ . '/..' . '/spatie/backtrace/src',
+        ),
+        'Saade\\FilamentFullCalendar\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/saade/filament-fullcalendar/src',
         ),
         'RyanChandler\\BladeCaptureDirective\\Database\\Factories\\' => 
         array (
@@ -8304,6 +8309,18 @@ class ComposerStaticInit6d490a6a310cea6733709b5e128cb5e4
         'RyanChandler\\BladeCaptureDirective\\BladeCaptureDirective' => __DIR__ . '/..' . '/ryangjchandler/blade-capture-directive/src/BladeCaptureDirective.php',
         'RyanChandler\\BladeCaptureDirective\\BladeCaptureDirectiveServiceProvider' => __DIR__ . '/..' . '/ryangjchandler/blade-capture-directive/src/BladeCaptureDirectiveServiceProvider.php',
         'SQLite3Exception' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/SQLite3Exception.php',
+        'Saade\\FilamentFullCalendar\\Actions\\CreateAction' => __DIR__ . '/..' . '/saade/filament-fullcalendar/src/Actions/CreateAction.php',
+        'Saade\\FilamentFullCalendar\\Actions\\DeleteAction' => __DIR__ . '/..' . '/saade/filament-fullcalendar/src/Actions/DeleteAction.php',
+        'Saade\\FilamentFullCalendar\\Actions\\EditAction' => __DIR__ . '/..' . '/saade/filament-fullcalendar/src/Actions/EditAction.php',
+        'Saade\\FilamentFullCalendar\\Actions\\ViewAction' => __DIR__ . '/..' . '/saade/filament-fullcalendar/src/Actions/ViewAction.php',
+        'Saade\\FilamentFullCalendar\\Data\\EventData' => __DIR__ . '/..' . '/saade/filament-fullcalendar/src/Data/EventData.php',
+        'Saade\\FilamentFullCalendar\\FilamentFullCalendarPlugin' => __DIR__ . '/..' . '/saade/filament-fullcalendar/src/FilamentFullCalendarPlugin.php',
+        'Saade\\FilamentFullCalendar\\FilamentFullCalendarServiceProvider' => __DIR__ . '/..' . '/saade/filament-fullcalendar/src/FilamentFullCalendarServiceProvider.php',
+        'Saade\\FilamentFullCalendar\\Widgets\\Concerns\\InteractsWithEvents' => __DIR__ . '/..' . '/saade/filament-fullcalendar/src/Widgets/Concerns/InteractsWithEvents.php',
+        'Saade\\FilamentFullCalendar\\Widgets\\Concerns\\InteractsWithHeaderActions' => __DIR__ . '/..' . '/saade/filament-fullcalendar/src/Widgets/Concerns/InteractsWithHeaderActions.php',
+        'Saade\\FilamentFullCalendar\\Widgets\\Concerns\\InteractsWithModalActions' => __DIR__ . '/..' . '/saade/filament-fullcalendar/src/Widgets/Concerns/InteractsWithModalActions.php',
+        'Saade\\FilamentFullCalendar\\Widgets\\Concerns\\InteractsWithRecords' => __DIR__ . '/..' . '/saade/filament-fullcalendar/src/Widgets/Concerns/InteractsWithRecords.php',
+        'Saade\\FilamentFullCalendar\\Widgets\\FullCalendarWidget' => __DIR__ . '/..' . '/saade/filament-fullcalendar/src/Widgets/FullCalendarWidget.php',
         'SebastianBergmann\\CliParser\\AmbiguousOptionException' => __DIR__ . '/..' . '/sebastian/cli-parser/src/exceptions/AmbiguousOptionException.php',
         'SebastianBergmann\\CliParser\\Exception' => __DIR__ . '/..' . '/sebastian/cli-parser/src/exceptions/Exception.php',
         'SebastianBergmann\\CliParser\\OptionDoesNotAllowArgumentException' => __DIR__ . '/..' . '/sebastian/cli-parser/src/exceptions/OptionDoesNotAllowArgumentException.php',

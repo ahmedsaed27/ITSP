@@ -2,9 +2,11 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\CalendarWidget;
 use Filament\Pages\Dashboard as FilamentDashboard;
 use Filament\Pages\Page;
 use Filament\Widgets\AccountWidget;
+use Filament\Widgets\FilamentInfoWidget;
 
 class Dashboard extends FilamentDashboard
 {
@@ -17,6 +19,8 @@ class Dashboard extends FilamentDashboard
     {
         return [
             AccountWidget::class,
+            FilamentInfoWidget::class,
+            CalendarWidget::class
         ];
     }
 }
