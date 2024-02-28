@@ -25,6 +25,8 @@ use Illuminate\Support\Facades\Log;
 use Filament\Resources\Pages\CreateRecord\Concerns\HasWizard;
 use Illuminate\Support\Facades\Hash;
 
+use function PHPUnit\Framework\isNull;
+
 class EditUsers extends EditRecord
 {
     use HasWizard;
@@ -49,7 +51,8 @@ class EditUsers extends EditRecord
         try {
             DB::beginTransaction();
 
-            $userSystemInfo = array_key_exists('password', $data)
+
+            $userSystemInfo = !isNull($data['password'])
                 ? collect($data)->only(['name', 'email', 'password', 'type'])->all()
                 : collect($data)->only(['name', 'email', 'type'])->all();
 
@@ -58,6 +61,7 @@ class EditUsers extends EditRecord
             $record->update($userSystemInfo);
 
             $employee = new Employees($userInfo);
+
             $record->employee()->update($employee->toArray());
 
             DB::commit();
@@ -93,7 +97,7 @@ class EditUsers extends EditRecord
                         ->options([
                             1 => 'Employee',
                             2 => 'Hr',
-                            3 => 'developer',
+                            3 => 'Modirator',
                         ])
                         ->rules([
                             function () {
@@ -110,7 +114,7 @@ class EditUsers extends EditRecord
 
 
                         TextInput::make('password')->confirmed()->password()->revealable(),
-                        TextInput::make('password_confirmation'),
+                        TextInput::make('password_confirmation')->password(),
                     ])->columns(),
             ]),
 

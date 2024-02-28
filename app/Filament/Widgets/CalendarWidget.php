@@ -20,6 +20,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
 use Illuminate\Database\Eloquent\Model;
+use Saade\FilamentFullCalendar\Actions\CreateAction;
 use Saade\FilamentFullCalendar\Actions\DeleteAction as ActionsDeleteAction;
 use Saade\FilamentFullCalendar\Actions\EditAction as ActionsEditAction;
 use Saade\FilamentFullCalendar\Widgets\FullCalendarWidget;
@@ -36,6 +37,22 @@ class CalendarWidget extends FullCalendarWidget
     //     'md' => 1,
     //     'xl' => 1,
     // ];
+
+    protected function headerActions(): array
+    {
+        return [
+            CreateAction::make()
+                ->mountUsing(
+                    function (Form $form, array $arguments) {
+                        $form->fill([
+                            'start' => $arguments['start'] ?? null,
+                            'end' => $arguments['end'] ?? null
+                        ]);
+                    }
+                )
+        ];
+    }
+
 
     public Model | string | null $model = Task::class;
 

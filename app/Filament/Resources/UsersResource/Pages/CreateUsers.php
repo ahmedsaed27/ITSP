@@ -60,7 +60,7 @@ class CreateUsers extends CreateRecord
 
             DB::beginTransaction();
             $userSystemInfo = collect($data)->only(['name', 'email' , 'password' , 'type'])->all();
-            $userInfo = collect($data)->except(['name', 'email' , 'password'])->all();
+            $userInfo = collect($data)->except(['name', 'email' , 'password' , 'type'])->all();
 
             $user =  static::getModel()::create($userSystemInfo);
 

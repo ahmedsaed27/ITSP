@@ -57,5 +57,4 @@ class FullCalendarWidget extends Widget implements HasForms, HasActions
     {
         return [];
     }
-
 }

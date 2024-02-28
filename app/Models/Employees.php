@@ -17,7 +17,10 @@ class Employees extends Authenticatable
 
     protected $guard_name = 'hr';
 
-    protected $fillable = [ 'user_id','phone' , 'address' , 'gander' , 'college' , 'university' , 'Specialization' , 'position_type' , 'skils'];
+    protected $fillable = [
+        'user_id','phone' , 'address' , 'gander' , 'college' ,
+        'university' , 'Specialization' , 'position_type' , 'skils' , 'departments_id'
+    ];
 
     public $timestamps = true;
 

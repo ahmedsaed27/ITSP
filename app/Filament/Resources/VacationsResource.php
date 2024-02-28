@@ -29,7 +29,14 @@ class VacationsResource extends Resource
 {
     protected static ?string $model = Vacations::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-chart-bar-square';
+
+    protected static ?string $navigationGroup = 'Hr';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
 
     public static function form(Form $form): Form
     {

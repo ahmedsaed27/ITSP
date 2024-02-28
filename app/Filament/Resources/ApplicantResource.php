@@ -3,11 +3,10 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ApplicantResource\Pages;
-use App\Filament\Resources\ApplicantResource\RelationManagers;
+// use App\Filament\Resources\ApplicantResource\RelationManagers;
 use App\Infolists\Components\ApplicantCv;
 use App\Models\Applicant;
 use App\Models\Citys;
-use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Group;
@@ -19,21 +18,16 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 
-use Filament\Infolists;
 use Filament\Infolists\Components\Grid;
 use Filament\Infolists\Components\Group as InfolistGroup;
 use Filament\Infolists\Components\ImageEntry;
-use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\Section as InfolistSection;
 use Filament\Infolists\Components\Split;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
-use Filament\Pages\Page;
 use Filament\Infolists\Components\Actions\Action as InfolistAction;
 use Illuminate\Database\Eloquent\Model;
 
@@ -41,7 +35,14 @@ class ApplicantResource extends Resource
 {
     protected static ?string $model = Applicant::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-user';
+
+    protected static ?string $navigationGroup = 'Hr';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
 
     public static function form(Form $form): Form
     {

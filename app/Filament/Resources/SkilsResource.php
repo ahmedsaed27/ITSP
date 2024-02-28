@@ -21,7 +21,14 @@ class SkilsResource extends Resource
 {
     protected static ?string $model = Skills::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-cube-transparent';
+
+    protected static ?string $navigationGroup = 'Hr';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
 
     public static function form(Form $form): Form
     {

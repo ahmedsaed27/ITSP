@@ -3,34 +3,27 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UsersResource\Pages;
-use App\Filament\Resources\UsersResource\RelationManagers;
 use App\Models\User;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Infolists;
 use Filament\Infolists\Components\Grid;
 use Filament\Infolists\Components\Group;
 use Filament\Infolists\Components\ImageEntry;
-use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\Split;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Pages\Page;
 use Filament\Pages\SubNavigationPosition;
-use Filament\Support\Enums\FontWeight;
 
 class UsersResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
     protected static ?string $modelLabel = 'Employee';
 
@@ -40,8 +33,13 @@ class UsersResource extends Resource
 
     protected static ?string $slug = 'employees';
 
+    protected static ?string $navigationGroup = 'Hr';
 
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
 
 
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Start;
@@ -58,7 +56,7 @@ class UsersResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(User::query()->where('type' , '!=' , '0'))
+            // ->query(User::query()->where('type' , '!=' , '0'))
             ->columns([
                 TextColumn::make('id')->label('#')->searchable(),
                 TextColumn::make('name')->searchable(),
@@ -90,6 +88,8 @@ class UsersResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
+                Tables\Actions\Action::make('activities')->url(fn ($record) => UsersResource::getUrl('activities', ['record' => $record])),
+
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
@@ -201,6 +201,7 @@ class UsersResource extends Resource
             'edit' => Pages\EditUsers::route('/{record}/edit'),
             'view' => Pages\ViewUsers::route('/{record}'),
             'vacations' => Pages\UserVacations::route('/{record}/comments'),
+            'activities' => Pages\ListUserActivities::route('/{record}/activities'),
 
         ];
     }

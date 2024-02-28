@@ -16,8 +16,10 @@
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
         "malzariey/filament-daterangepicker-filter": "^2.3",
+        "pxlrbt/filament-activity-log": "^1.0",
         "pxlrbt/filament-excel": "^2.3",
         "saade/filament-fullcalendar": "^3.1",
+        "spatie/laravel-activitylog": "^4.7",
         "spatie/laravel-ray": "^1.35"
     },
     "require-dev": {
