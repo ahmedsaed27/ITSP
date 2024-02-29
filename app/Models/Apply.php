@@ -11,7 +11,7 @@ class Apply extends Model
 
     protected $table = 'apply';
 
-    protected $fillable = ['jobs_id' , 'applicant_id' , 'cv' , 'years_experience'];
+    protected $fillable = ['jobs_id' , 'applicant_id' , 'cv' , 'years_experience' , 'status'];
 
     public $timestamps = true;
 
@@ -22,5 +22,9 @@ class Apply extends Model
 
     public function applicant(){
         return $this->belongsTo(Applicant::class , 'applicant_id');
+    }
+
+    public function review(){
+        return $this->hasOne(Review::class , 'apply_id');
     }
 }

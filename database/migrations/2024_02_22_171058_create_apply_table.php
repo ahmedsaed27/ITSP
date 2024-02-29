@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreign('applicant_id')->references('id')->on('applicant')->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('cv')->nullable();
             $table->integer('years_experience');
+            $table->tinyInteger('status')->default(0);
             $table->timestamps();
         });
     }

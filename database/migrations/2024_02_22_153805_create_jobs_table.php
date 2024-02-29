@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('jobs', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('categories_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('departments_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('image');
             $table->string('postion');
             $table->longText('discription');

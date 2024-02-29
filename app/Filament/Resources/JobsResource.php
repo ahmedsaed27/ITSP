@@ -4,6 +4,8 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\JobsResource\Pages;
 use App\Filament\Resources\JobsResource\RelationManagers;
+use App\Models\Category;
+use App\Models\Departments;
 use App\Models\Jobs;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
@@ -27,9 +29,13 @@ class JobsResource extends Resource
 {
     protected static ?string $model = Jobs::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-briefcase';
+    // protected static ?string $navigationIcon = 'heroicon-o-briefcase';
 
-    protected static ?string $navigationGroup = 'Hr';
+    // protected static ?string $navigationGroup = 'Hr';
+    protected static ?string $navigationGroup = 'Hiring Process';
+
+    protected static ?int $navigationSort = 2;
+
 
     public static function getNavigationBadge(): ?string
     {
@@ -42,6 +48,18 @@ class JobsResource extends Resource
             ->schema([
                 Group::make()
                 ->schema([
+                    Section::make()
+                    ->schema([
+                        Select::make('categories_id')
+                        ->label('categorie')
+                        ->options(Category::all()->pluck('name' , 'id'))
+                        ->required(),
+
+                        Select::make('departments_id')
+                        ->label('department')
+                        ->options(Departments::all()->pluck('name' , 'id'))
+                        ->required(),
+                    ]),
                     Section::make()
                     ->schema([
                         TextInput::make('postion')->required(),
@@ -110,6 +128,8 @@ class JobsResource extends Resource
                     return $state == 0 ? 'remotly' : ($state == 1 ? 'on site' : 'Hybrid');
                 })->searchable()->badge(),
 
+                TextColumn::make('categoty.name')->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('department.name')->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('range_salary')->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('skills')->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('discription')->words(20)->wrap()->toggleable(isToggledHiddenByDefault: true),

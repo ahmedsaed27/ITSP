@@ -18,4 +18,8 @@ class Applicant extends Model
     public function city(){
         return $this->belongsTo(Citys::class , 'citys_id');
     }
+
+    public function applies(){
+        return $this->hasMany(Apply::class , 'applicant_id');
+    }
 }

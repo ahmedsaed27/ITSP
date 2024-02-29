@@ -35,9 +35,11 @@ class ApplicantResource extends Resource
 {
     protected static ?string $model = Applicant::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-user';
+    // protected static ?string $navigationIcon = 'heroicon-o-user';
 
-    protected static ?string $navigationGroup = 'Hr';
+    // protected static ?string $navigationGroup = 'Hr';
+    protected static ?string $navigationGroup = 'Hiring Process';
+    protected static ?int $navigationSort = 1;
 
     public static function getNavigationBadge(): ?string
     {

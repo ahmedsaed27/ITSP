@@ -12,9 +12,9 @@ class Jobs extends Model
     protected $table = 'jobs';
 
     protected $fillable = ['image' , 'postion' , 'discription' , 'job_level' ,
-                            'job_type' , 'job_place' , 'range_salary'
-                             , 'skills' , 'requirments'
-                            ];
+                            'job_type' , 'job_place' , 'range_salary',
+                            'skills' , 'requirments' , 'categories_id' , 'departments_id'
+                        ];
 
     public $timestamps = true;
 
@@ -22,4 +22,11 @@ class Jobs extends Model
         'skills' => 'array'
     ];
 
+    public function categoty(){
+        return $this->belongsTo(Category::class , 'categories_id');
+    }
+
+    public function department(){
+        return $this->belongsTo(Departments::class , 'departments_id');
+    }
 }

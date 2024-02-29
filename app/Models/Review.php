@@ -18,4 +18,8 @@ class Review extends Model
     public function apply(){
         return $this->belongsTo(Apply::class , 'apply_id');
     }
+
+    public function interview(){
+        return $this->hasOne(InterviewDate::class , 'review_id');
+    }
 }

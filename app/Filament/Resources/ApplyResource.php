@@ -2,18 +2,22 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ApplicantStatus;
 use App\Filament\Resources\ApplyResource\Pages;
 use App\Filament\Resources\ApplyResource\RelationManagers;
 use App\Infolists\Components\ApplicantCv;
 use App\Models\Applicant;
 use App\Models\Apply;
 use App\Models\Jobs;
+use App\Models\Review;
+use Closure;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
@@ -41,9 +45,12 @@ class ApplyResource extends Resource
 {
     protected static ?string $model = Apply::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-plus';
+    // protected static ?string $navigationIcon = 'heroicon-o-plus';
 
-    protected static ?string $navigationGroup = 'Hr';
+    // protected static ?string $navigationGroup = 'Hr';
+    protected static ?string $navigationGroup = 'Hiring Process';
+
+    protected static ?int $navigationSort = 3;
 
     public static function getNavigationBadge(): ?string
     {
@@ -56,11 +63,6 @@ class ApplyResource extends Resource
             ->schema([
                 Section::make()
                 ->schema([
-                    Select::make('jobs_id')
-                    ->label('Jobs')
-                    ->options(Jobs::all()->pluck('postion' , 'id'))
-                    ->required()
-                    ->searchable(),
 
                     Select::make('applicant_id')
                     ->label('Applicant')
@@ -68,6 +70,21 @@ class ApplyResource extends Resource
                     ->required()
                     ->searchable(),
 
+                    Select::make('jobs_id')
+                    ->label('Jobs')
+                    ->options(Jobs::all()->pluck('postion' , 'id'))
+                    ->required()
+                    ->searchable(),
+                    // ->rules([
+                    //     function (Get $get) {
+                    //         return function (string $attribute, $value, Closure $fail) use($get){
+                    //             $ApplicantApplyes = Applicant::find($get('applicant_id'))->applies;
+                    //             if($ApplicantApplyes->contains('jobs_id', $value)){
+                    //                 $fail('You cannot apply for a job more than once');
+                    //             }
+                    //         };
+                    //     },
+                    // ]),
 
                     FileUpload::make('cv')->label('Cv')->disk('applicant')->acceptedFileTypes(['application/pdf']),
 
@@ -83,6 +100,15 @@ class ApplyResource extends Resource
                 TextColumn::make('job.postion')->searchable(),
                 TextColumn::make('applicant.name')->searchable(),
                 TextColumn::make('years_experience')->badge(),
+                TextColumn::make('status')->formatStateUsing(function($state){
+                    $value = match($state){
+                        (int) ApplicantStatus::New->value => 'new',
+                        (int) ApplicantStatus::Acceptable->value => 'acceptable',
+                        (int) ApplicantStatus::Rejected->value => 'rejected',
+                        (int) ApplicantStatus::Priorities->value => 'priorities',
+                    };
+                    return $value;
+                })->badge()->searchable(),
             ])
             ->filters([
                 //
@@ -90,6 +116,31 @@ class ApplyResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
 
+                Action::make('status')
+                ->form([
+                    Select::make('status')
+                    ->options([
+                        2 => 'Acceptable',
+                        3 => 'Rejected',
+                        4 => 'Priorities',
+
+                    ])
+                    ->searchable()
+                    ->required()
+                ])->action(function(Model $record , $data){
+                    $record->update([
+                        'status' => $data['status']
+                    ]);
+
+                    $record->review()->create([
+                        'status' => $data['status'],
+                        'note' => 'test',
+                    ]);
+                   
+                     
+                })->hidden(function(Model $record){
+                    return $record->review !== null || $record->status !== 0;
+                }),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
 
