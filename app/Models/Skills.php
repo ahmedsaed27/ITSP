@@ -11,7 +11,7 @@ class Skills extends Model
 {
     use HasFactory , LogsActivity;
 
-    protected $table = 'Skills';
+    protected $table = 'skills';
 
     protected $fillable = ['title' , 'description'];
 
