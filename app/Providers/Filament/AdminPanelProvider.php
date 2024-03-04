@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Backup\Backups;
 use App\Filament\Pages\Dashboard;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -20,6 +21,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Jeffgreco13\FilamentBreezy\BreezyCore;
 use Saade\FilamentFullCalendar\FilamentFullCalendarPlugin;
+use ShuvroRoy\FilamentSpatieLaravelBackup\FilamentSpatieLaravelBackupPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -55,7 +57,13 @@ class AdminPanelProvider extends PanelProvider
                 ->timezone('Africa/Cairo')
                 ->locale(config('app.locale'))
                 ->plugins(['dayGrid', 'timeGrid'] , true)
-                ->config([])
+                ->config([]),
+
+                FilamentSpatieLaravelBackupPlugin::make()
+                ->usingPage(Backups::class)
+                ->usingPolingInterval('10s')
+
+                
             ])
             ->databaseNotifications()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
