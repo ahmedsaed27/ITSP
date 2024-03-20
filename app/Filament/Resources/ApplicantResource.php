@@ -30,8 +30,10 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Infolists\Components\Actions\Action as InfolistAction;
 use Illuminate\Database\Eloquent\Model;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 
-class ApplicantResource extends Resource
+
+class ApplicantResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Applicant::class;
 
@@ -40,6 +42,18 @@ class ApplicantResource extends Resource
     // protected static ?string $navigationGroup = 'Hr';
     protected static ?string $navigationGroup = 'Hiring Process';
     protected static ?int $navigationSort = 1;
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+        ];
+    }
 
     public static function getNavigationBadge(): ?string
     {

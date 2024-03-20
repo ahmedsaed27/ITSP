@@ -6,6 +6,7 @@ use App\Filament\Resources\ProjectsResource\Pages;
 use App\Filament\Resources\ProjectsResource\RelationManagers;
 use App\Models\Category;
 use App\Models\Projects;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Group;
@@ -29,7 +30,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 
-class ProjectsResource extends Resource
+class ProjectsResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Projects::class;
 
@@ -40,6 +41,18 @@ class ProjectsResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         return static::getModel()::count();
+    }
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+        ];
     }
 
     public static function form(Form $form): Form

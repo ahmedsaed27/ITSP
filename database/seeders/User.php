@@ -14,80 +14,13 @@ class User extends Seeder
     public function run(): void
     {
 
-        $arr = [
-            [
-                'name' => 'admin',
-                'email' => 'admin@admin.com',
-                'password' => bcrypt('password'),
-                'type' => 0,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'employee',
-                'email' => 'employee@admin.com',
-                'password' => bcrypt('password'),
-                'type' => 1,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'hr',
-                'email' => 'hr@admin.com',
-                'password' => bcrypt('password'),
-                'type' => 2,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'modirator',
-                'email' => 'modirator@admin.com',
-                'password' => bcrypt('password'),
-                'type' => 3,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]
-        ];
+    
+        $user = ModelsUser::create([
+            'name' => 'admin',
+            'email' => 'admin@admin.com',
+            'password' => bcrypt('password'),
+        ]);
 
-        foreach($arr as $array){
-            ModelsUser::create($array);
-        }
-
-        // ModelsUser::insert(
-        //     [
-        //         [
-        //             'name' => 'admin',
-        //             'email' => 'admin@admin.com',
-        //             'password' => bcrypt('password'),
-        //             'type' => 0,
-        //             'created_at' => now(),
-        //             'updated_at' => now(),
-        //         ],
-        //         [
-        //             'name' => 'employee',
-        //             'email' => 'employee@admin.com',
-        //             'password' => bcrypt('password'),
-        //             'type' => 1,
-        //             'created_at' => now(),
-        //             'updated_at' => now(),
-        //         ],
-        //         [
-        //             'name' => 'hr',
-        //             'email' => 'hr@admin.com',
-        //             'password' => bcrypt('password'),
-        //             'type' => 2,
-        //             'created_at' => now(),
-        //             'updated_at' => now(),
-        //         ],
-        //         [
-        //             'name' => 'modirator',
-        //             'email' => 'modirator@admin.com',
-        //             'password' => bcrypt('password'),
-        //             'type' => 3,
-        //             'created_at' => now(),
-        //             'updated_at' => now(),
-        //         ]
-        //     ]
-        // );
+        $user->assignRole('super_admin');
     }
 }

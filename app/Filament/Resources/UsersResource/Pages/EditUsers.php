@@ -92,24 +92,11 @@ class EditUsers extends EditRecord
                         TextInput::make('name')->required(),
                         TextInput::make('email')->unique(table:'users' , column:'email' , ignorable: $this->record)->email()->required(),
 
-                        Select::make('type')
-                        ->label('roles')
-                        ->options([
-                            1 => 'Employee',
-                            2 => 'Hr',
-                            3 => 'Modirator',
-                        ])
-                        ->rules([
-                            function () {
-                                return function (string $attribute, $value, Closure $fail) {
-                                    if (!in_array($value , [1 , 2 , 3])) {
-                                        $fail('The :attribute is invalid.');
-                                    }
-                                };
-                            },
-                        ])
+                        Select::make('roles')
+                        ->relationship('roles', 'name')
+                        ->multiple()
+                        ->preload()
                         ->searchable()
-                        ->required()
                         ->columnSpan(2),
 
 

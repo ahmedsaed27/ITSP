@@ -2,24 +2,25 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\UsersResource\Pages;
 use App\Models\User;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Filament\Infolists\Components\Grid;
-use Filament\Infolists\Components\Group;
-use Filament\Infolists\Components\ImageEntry;
-use Filament\Infolists\Components\Section;
-use Filament\Infolists\Components\Split;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Infolists\Infolist;
+use Filament\Forms\Form;
 use Filament\Pages\Page;
+use Filament\Tables\Table;
+use Filament\Infolists\Infolist;
+use Filament\Resources\Resource;
+use Filament\Infolists\Components\Grid;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Infolists\Components\Group;
+use Filament\Infolists\Components\Split;
 use Filament\Pages\SubNavigationPosition;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ImageEntry;
+use App\Filament\Resources\UsersResource\Pages;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 
-class UsersResource extends Resource
+class UsersResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = User::class;
 
@@ -45,6 +46,18 @@ class UsersResource extends Resource
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Start;
 
 
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+        ];
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -61,19 +74,11 @@ class UsersResource extends Resource
                 TextColumn::make('id')->label('#')->searchable(),
                 TextColumn::make('name')->searchable(),
                 TextColumn::make('email')->copyable()->searchable()->badge(),
-                TextColumn::make('type')->copyable()
-                ->searchable()
-                ->formatStateUsing(function(string $state){
-                    $value = match ($state) {
-                        '0' => 'Admin',
-                        '1' => 'Employee',
-                        '2' => 'Hr',
-                        '3' => 'Modirator'
-                    };
-
-                    return $value;
-                })
-                ->badge(),
+             
+                TextColumn::make('roleNames')
+                ->label('Roles')
+                ->badge()
+                ->separator(','),
                 TextColumn::make('employee.phone')->label('phone')->copyable()->badge()->searchable(),
                 TextColumn::make('employee.address')->label('address')->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('employee.gander')->label('gander')->toggleable(isToggledHiddenByDefault: true)->formatStateUsing(fn (string $state): string => $state == 0 ? 'female' : 'male'),

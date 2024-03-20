@@ -7,6 +7,7 @@ use App\Filament\Resources\InterviewDateResource\Pages;
 use App\Filament\Resources\InterviewDateResource\RelationManagers;
 use App\Models\FinalInterviewStatus;
 use App\Models\InterviewDate;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\MarkdownEditor;
@@ -24,7 +25,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class InterviewDateResource extends Resource
+class InterviewDateResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = InterviewDate::class;
 
@@ -41,6 +42,18 @@ class InterviewDateResource extends Resource
             ->schema([
                 //
             ]);
+    }
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+        ];
     }
 
     public static function table(Table $table): Table

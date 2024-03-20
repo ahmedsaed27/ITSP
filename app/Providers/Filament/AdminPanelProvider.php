@@ -61,7 +61,24 @@ class AdminPanelProvider extends PanelProvider
 
                 FilamentSpatieLaravelBackupPlugin::make()
                 ->usingPage(Backups::class)
-                ->usingPolingInterval('10s')
+                ->usingPolingInterval('10s'),
+
+                \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()  
+                ->gridColumns([
+                    'default' => 1,
+                    'sm' => 2,
+                    'lg' => 3
+                ])
+                ->sectionColumnSpan(1)
+                ->checkboxListColumns([
+                    'default' => 1,
+                    'sm' => 2,
+                    'lg' => 4,
+                ])
+                ->resourceCheckboxListColumns([
+                    'default' => 1,
+                    'sm' => 2,
+                ]),
 
                 
             ])

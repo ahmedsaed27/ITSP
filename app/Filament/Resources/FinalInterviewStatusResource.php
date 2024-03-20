@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\FinalInterviewStatusResource\Pages;
 use App\Filament\Resources\FinalInterviewStatusResource\RelationManagers;
 use App\Models\FinalInterviewStatus;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class FinalInterviewStatusResource extends Resource
+class FinalInterviewStatusResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = FinalInterviewStatus::class;
 
@@ -32,6 +33,18 @@ class FinalInterviewStatusResource extends Resource
             ->schema([
                 //
             ]);
+    }
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+        ];
     }
 
     public static function table(Table $table): Table

@@ -2,30 +2,31 @@
 
 namespace App\Filament\Resources;
 
-use App\Enums\ApplicantStatus;
-use App\Filament\Resources\ReviewResource\Pages;
-use App\Filament\Resources\ReviewResource\RelationManagers;
-use App\Models\Apply;
-use App\Models\InterviewDate;
-use App\Models\Review;
-use Filament\Actions\Action;
 use Filament\Forms;
+use Filament\Tables;
+use App\Models\Apply;
+use App\Models\Review;
+use Filament\Forms\Form;
+use Filament\Tables\Table;
+use Filament\Actions\Action;
+use App\Models\InterviewDate;
+use App\Enums\ApplicantStatus;
+use Filament\Resources\Resource;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Section;
+use Filament\Tables\Columns\TextColumn;
+use Illuminate\Database\Eloquent\Model;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\MarkdownEditor;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Notifications\Notification;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
+use App\Filament\Resources\ReviewResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\ReviewResource\RelationManagers;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 
-class ReviewResource extends Resource
+class ReviewResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Review::class;
 
@@ -37,6 +38,18 @@ class ReviewResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+        ];
+    }
 
 
     public static function getNavigationBadge(): ?string

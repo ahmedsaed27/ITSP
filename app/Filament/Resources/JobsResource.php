@@ -7,6 +7,7 @@ use App\Filament\Resources\JobsResource\RelationManagers;
 use App\Models\Category;
 use App\Models\Departments;
 use App\Models\Jobs;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Group;
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 
-class JobsResource extends Resource
+class JobsResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Jobs::class;
 
@@ -40,6 +41,18 @@ class JobsResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         return static::getModel()::count();
+    }
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+        ];
     }
 
     public static function form(Form $form): Form

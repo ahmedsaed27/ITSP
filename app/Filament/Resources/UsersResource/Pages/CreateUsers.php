@@ -124,24 +124,11 @@ class CreateUsers extends CreateRecord
                         TextInput::make('name')->required(),
                         TextInput::make('email')->unique(table:'users' , column:'email')->email()->required(),
 
-                        Select::make('type')
-                        ->label('roles')
-                        ->options([
-                            1 => 'employee',
-                            2 => 'Hr',
-                            3 => 'Modirator',
-                        ])
+                        Select::make('roles')
+                        ->relationship('roles', 'name')
+                        ->multiple()
+                        ->preload()
                         ->searchable()
-                        ->required()
-                        ->rules([
-                            function () {
-                                return function (string $attribute, $value, Closure $fail) {
-                                    if (!in_array($value , [1 , 2 , 3])) {
-                                        $fail('The :attribute is invalid.');
-                                    }
-                                };
-                            },
-                        ])
                         ->columnSpan(2),
 
                         TextInput::make('password')->confirmed()->password()->revealable()->required(),

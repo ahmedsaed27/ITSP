@@ -7,6 +7,7 @@ use App\Filament\Resources\EmployeeReviewResource\RelationManagers;
 use App\Models\EmployeeReview;
 use App\Models\Employees;
 use App\Models\User;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\MarkdownEditor;
@@ -21,7 +22,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class EmployeeReviewResource extends Resource
+class EmployeeReviewResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = EmployeeReview::class;
 
@@ -32,6 +33,18 @@ class EmployeeReviewResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         return static::getModel()::count();
+    }
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+        ];
     }
 
     public static function form(Form $form): Form

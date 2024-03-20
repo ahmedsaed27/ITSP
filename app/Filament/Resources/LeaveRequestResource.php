@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\LeaveRequestResource\Pages;
 use App\Filament\Resources\LeaveRequestResource\RelationManagers;
 use App\Models\LeaveRequest;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Carbon\Carbon;
 use Closure;
 use Filament\Tables\Actions\Action;
@@ -26,7 +27,7 @@ use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 
 
-class LeaveRequestResource extends Resource
+class LeaveRequestResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = LeaveRequest::class;
 
@@ -39,6 +40,18 @@ class LeaveRequestResource extends Resource
         return static::getModel()::count();
     }
     
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+        ];
+    }
 
     public static function form(Form $form): Form
     {

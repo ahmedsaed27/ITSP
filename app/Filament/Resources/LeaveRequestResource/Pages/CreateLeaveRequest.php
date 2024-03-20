@@ -24,7 +24,8 @@ class CreateLeaveRequest extends CreateRecord
 
         $emp = $this->record;
 
-        $users = User::whereIn('type' , [0 , 2 , 3])->get();
+        // $users = User::whereIn('type' , [0 , 2 , 3])->get();
+        $users = User::role('super_admin')->get();
 
         Notification::make()
             ->title('Leave Request')

@@ -6,14 +6,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 use Laravel\Sanctum\HasApiTokens;
 use Jeffgreco13\FilamentBreezy\Traits\TwoFactorAuthenticatable;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable , LogsActivity;
+    use HasApiTokens, HasFactory, Notifiable , LogsActivity , HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -24,7 +26,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'type'
     ];
 
     /**
@@ -69,6 +70,11 @@ class User extends Authenticatable
     {
         return LogOptions::defaults()
         ->logOnly(['name']);
+    }
+
+    public function getRoleNamesAttribute() :string
+    {
+        return $this->roles->pluck('name')->join(',');
     }
 
     public static function boot()

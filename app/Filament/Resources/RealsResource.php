@@ -7,6 +7,7 @@ use App\Filament\Resources\RealsResource\RelationManagers;
 use App\Models\Category;
 use App\Models\Reals;
 use App\Models\TeamMembers;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\MarkdownEditor;
@@ -21,7 +22,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class RealsResource extends Resource
+class RealsResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Reals::class;
 
@@ -32,6 +33,19 @@ class RealsResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         return static::getModel()::count();
+    }
+
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+        ];
     }
 
     public static function form(Form $form): Form

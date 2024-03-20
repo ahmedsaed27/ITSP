@@ -40,8 +40,10 @@ use Filament\Infolists\Infolist;
 use Filament\Pages\Page;
 use Filament\Infolists\Components\Actions\Action as InfolistAction;
 use Illuminate\Database\Eloquent\Model;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 
-class ApplyResource extends Resource
+
+class ApplyResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Apply::class;
 
@@ -55,6 +57,18 @@ class ApplyResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         return static::getModel()::count();
+    }
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+        ];
     }
 
     public static function form(Form $form): Form

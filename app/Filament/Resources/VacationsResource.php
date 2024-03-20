@@ -2,30 +2,31 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\VacationsResource\Pages;
-use App\Filament\Resources\VacationsResource\RelationManagers;
-use App\Models\User;
-use App\Models\Vacations;
-use Carbon\Carbon;
 use Closure;
+use Carbon\Carbon;
 use Filament\Forms;
-use Filament\Forms\Components\MarkdownEditor;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Form;
-use Filament\Forms\Get;
-use Filament\Resources\Resource;
+use App\Models\User;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Get;
+use Filament\Forms\Form;
+use App\Models\Vacations;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Resources\Resource;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Section;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Forms\Components\MarkdownEditor;
+use App\Filament\Resources\VacationsResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Malzariey\FilamentDaterangepickerFilter\Fields\DateRangePicker;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Filament\Resources\VacationsResource\RelationManagers;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
+use Malzariey\FilamentDaterangepickerFilter\Fields\DateRangePicker;
 
 
-class VacationsResource extends Resource
+class VacationsResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Vacations::class;
 
@@ -36,6 +37,19 @@ class VacationsResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         return static::getModel()::count();
+    }
+
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+        ];
     }
 
     public static function form(Form $form): Form

@@ -100,9 +100,7 @@ class CalendarWidget extends FullCalendarWidget
                         'status' => $record->status,
                     ]);
                 }
-            )->hidden(function(){
-                return auth()->user()->type !== 0;
-            }),
+            ),
 
             ActionsDeleteAction::make()->hidden(function(){
                 return auth()->user()->type !== 0;
