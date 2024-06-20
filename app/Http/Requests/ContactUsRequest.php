@@ -5,10 +5,8 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Validation\Rule;
 
-
-class ApplicantRequest extends FormRequest
+class ContactUsRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,16 +24,12 @@ class ApplicantRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'cv' => "required|mimetypes:application/pdf",
             'name' => 'required|string',
-            'email' => ['required' , 'email',Rule::unique('applicant' , 'email')->ignore($this->route('applicant'))],
-            'password' => 'required|min:6',
-            'phone' => 'required|regex:/01[1250][0-9]{8}/',
-            'citys_id' => 'required|numeric',
-            'area' => 'required|string',
-            'birthYear' => 'required|date_format:Y',
-            'gender' => 'required|numeric',
-            'images' => 'required|image|mimes:jpeg,png,jpg,gif',
+            'position' => 'required|string',
+            'company' => 'required|string',
+            'phone' => 'required|numeric',
+            'needed' => 'required|string',
+            'other' => 'required|string',
         ];
     }
 

@@ -56,7 +56,23 @@ return [
         'jobs' => [
             'driver' => 'local',
             'root' => public_path('assets/jobs'),
-            'url' => env('APP_URL').'/assets/files',
+            'url' => env('APP_URL').'/assets/jobs',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+
+        'projects' => [
+            'driver' => 'local',
+            'root' => public_path('assets/projects'),
+            'url' => env('APP_URL').'/assets/projects',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+
+        'category' => [
+            'driver' => 'local',
+            'root' => public_path('assets/category'),
+            'url' => env('APP_URL').'/assets/category',
             'visibility' => 'public',
             'throw' => false,
         ],

@@ -19,7 +19,9 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Storage;
 
 class CategoryResource extends Resource implements HasShieldPermissions
 {
@@ -66,7 +68,7 @@ class CategoryResource extends Resource implements HasShieldPermissions
                     ->schema([
                         FileUpload::make('image')
                         ->label('')
-                        ->disk('public')
+                        ->disk('category')
                         ->image()
                         ->required(),
                     ])
@@ -89,7 +91,18 @@ class CategoryResource extends Resource implements HasShieldPermissions
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                // Tables\Actions\DeleteAction::make(),
+
+                Tables\Actions\Action::make('delete')
+                ->requiresConfirmation()
+                ->action(function(Model $recourd){
+                    if(Storage::disk('jobs')->exists($recourd->image)){
+                        Storage::disk('jobs')->delete($recourd->image);
+                    }
+                    $recourd->delete();
+                })
+                ->color('danger')
+                ->icon('heroicon-m-trash'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

@@ -31,7 +31,7 @@ use Filament\Infolists\Infolist;
 use Filament\Infolists\Components\Actions\Action as InfolistAction;
 use Illuminate\Database\Eloquent\Model;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
-
+use Illuminate\Support\Facades\File;
 
 class ApplicantResource extends Resource implements HasShieldPermissions
 {
@@ -180,7 +180,7 @@ class ApplicantResource extends Resource implements HasShieldPermissions
                                     ]),
                                 ]),
                                 ImageEntry::make('images')
-                                ->disk('applicant')
+                                // ->disk('applicant')
                                 ->circular()
                                 ->grow(false),
                         ])->from('lg'),
@@ -195,7 +195,14 @@ class ApplicantResource extends Resource implements HasShieldPermissions
                                 InfolistAction::make('download')
                                     ->icon('heroicon-m-arrow-down-tray')
                                     ->action(function (Model $record) {
-                                        return response()->download(public_path('assets/applicant/'.$record->cv));
+                                        $filePath = $record->cv;
+                                        $parsedUrl = parse_url($filePath);
+                                        $filePath = isset($parsedUrl['path']) ? ltrim($parsedUrl['path'], '/') : '';
+
+                                        if(File::exists($filePath)){
+                                            return response()->download($filePath);
+                                        }
+
                                     })
                             ),
                         ])

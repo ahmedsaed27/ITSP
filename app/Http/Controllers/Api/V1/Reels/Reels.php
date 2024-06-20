@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Http\Controllers\Api\V1\Projects;
+namespace App\Http\Controllers\Api\V1\Reels;
 
 use App\Http\Controllers\Controller;
-use App\Models\Projects as ModelsProjects;
+use App\Models\Reals;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Response;
 
-class Projects extends Controller
+class Reels extends Controller
 {
     use ApiResponse;
     /**
@@ -16,10 +16,13 @@ class Projects extends Controller
      */
     public function index()
     {
-        $projects = ModelsProjects::with('category')->latest()->paginate(10);
+        $data = Reals::with('member' , 'category')->paginate(10);
 
-       return $this->success(status:200 , message:'Projects retrieved successfully.' , data:$projects);
-
+        return $this->success(
+            status: 200,
+            message: 'Reels retrieved successfully.',
+            data: $data
+        );
     }
 
     /**

@@ -10,8 +10,6 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-use function Laravel\Prompts\error;
-
 class Applicant extends Controller
 {
     use ApiResponse;
@@ -31,10 +29,12 @@ class Applicant extends Controller
      */
     public function store(ApplicantRequest $request)
     {
-        $image =  $this->FileUploade($request->file('images'), 'applicant');
-        $cv =  $this->FileUploade($request->file('cv'), 'applicant');
-        
+
         try {
+
+            $image =  $this->FileUploade($request->file('images'), 'applicant');
+            $cv =  $this->FileUploade($request->file('cv'), 'applicant');
+
             DB::beginTransaction();
 
             $applicant = ModelsApplicant::create([
@@ -56,7 +56,7 @@ class Applicant extends Controller
         } catch (Exception $e) {
             DB::rollBack();
             $this->unlinkFile(fileSystem: 'applicant', files: [$image, $cv]);
-            return $this->error(status: 400, message: $e->getMessage(), data: $e->getMessage());
+            return $this->error(status: 400, message: $e->getMessage());
         }
     }
 
@@ -65,23 +65,30 @@ class Applicant extends Controller
      */
     public function show(string $id)
     {
-        return ModelsApplicant::findOr($id, function () {
-            return $this->error(400, 'id dosnt found', [
-                'errors' => 'id dosnt found'
-            ]);
-        });
+        $applicant = ModelsApplicant::with('city', 'applies')->find($id);
+
+        if(!$applicant){
+            return $this->error(400, 'applicant not found');
+        }
+
+        return $this->success(status: 200, message: 'Applicant retrieved successfully.' , data:$applicant);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(ApplicantRequest $request, string $id)
     {
+
         try{
 
             $applicant = ModelsApplicant::find($id);
 
-            if($request->hasFile('images') || $request->hasFile('cv')){
+            if(!$applicant){
+                return $this->error(400, 'applicant not found');
+            }
+
+            if($request->hasFile('images') && $request->hasFile('cv')){
                 $this->unlinkFile(fileSystem:'applicant' , files:[$applicant->cv , $applicant->images]);
                 $image =  $this->FileUploade($request->file('images'), 'applicant');
                 $cv =  $this->FileUploade($request->file('cv'), 'applicant');
@@ -89,7 +96,7 @@ class Applicant extends Controller
 
             DB::beginTransaction();
 
-        
+
             $applicant->update([
                 'name' => $request->name,
                 'email' => $request->email,
@@ -102,18 +109,16 @@ class Applicant extends Controller
                 'images' => $image,
                 'cv' => $cv
             ]);
-    
+
             DB::commit();
 
-            return $this->success(status: 200, message: 'Applicant updated successfully.', data: $applicant);
+            return $this->success(status: 200, message: 'Applicant updated successfully.', data:$applicant);
         }catch(Exception $e){
 
             DB::rollBack();
-            return $this->error(400, 'id doesn\'t found', [
-                'errors' => $e->getMessage()
-            ]);
+            return $this->error(400, $e->getMessage());
         }
-       
+
     }
 
     /**
@@ -121,6 +126,17 @@ class Applicant extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $applicant = ModelsApplicant::find($id);
+
+        if(!$applicant){
+            return $this->error(400, 'applicant not found');
+        }
+
+        $this->unlinkFile(fileSystem:'applicant' , files:[$applicant->cv , $applicant->images]);
+
+        $applicant->delete();
+
+        return $this->deleted(status: 200);
+
     }
 }

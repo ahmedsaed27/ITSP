@@ -80,7 +80,7 @@ class JobsResource extends Resource implements HasShieldPermissions
                             ->options([
                                 0 => 'junior',
                                 1 => 'Senior',
-                                3 => 'Mid level'
+                                2 => 'Mid level'
                             ])
                             ->searchable()
                             ->required(),
@@ -98,7 +98,7 @@ class JobsResource extends Resource implements HasShieldPermissions
                             ->options([
                                 0 => 'remotly',
                                 1 => 'on site',
-                                3 => 'Hybrid'
+                                2 => 'Hybrid'
                             ])
                             ->searchable()
                             ->required(),

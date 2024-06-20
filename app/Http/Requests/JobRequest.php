@@ -5,10 +5,8 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Validation\Rule;
 
-
-class ApplicantRequest extends FormRequest
+class JobRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,16 +24,17 @@ class ApplicantRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'cv' => "required|mimetypes:application/pdf",
-            'name' => 'required|string',
-            'email' => ['required' , 'email',Rule::unique('applicant' , 'email')->ignore($this->route('applicant'))],
-            'password' => 'required|min:6',
-            'phone' => 'required|regex:/01[1250][0-9]{8}/',
-            'citys_id' => 'required|numeric',
-            'area' => 'required|string',
-            'birthYear' => 'required|date_format:Y',
-            'gender' => 'required|numeric',
-            'images' => 'required|image|mimes:jpeg,png,jpg,gif',
+            'image' => 'required|image',
+            'postion' => 'required',
+            'discription' => 'required',
+            'job_level' => 'required|in:0,1,2',
+            'job_type' => 'required|in:0,1',
+            'job_place' => 'required|in:0,1,2',
+            'range_salary' => 'required',
+            'skills' => 'required|array',
+            'requirments' => 'required',
+            'categories_id' => 'required|exists:categories,id',
+            'departments_id' => 'required|exists:departments,id',
         ];
     }
 

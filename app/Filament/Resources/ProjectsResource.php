@@ -72,7 +72,7 @@ class ProjectsResource extends Resource implements HasShieldPermissions
                                 Section::make()
                                 ->schema([
                                     TextInput::make('name')->required()->columnSpan(2),
-                                    FileUpload::make('image')->required()->image()->columnSpan(2),
+                                    FileUpload::make('image')->disk('projects')->required()->image()->columnSpan(2),
                                     MarkdownEditor::make('description')->required()->columnSpan(2),
                                 ])->columns(2)
 
@@ -87,7 +87,7 @@ class ProjectsResource extends Resource implements HasShieldPermissions
                     Section::make()
                     ->description('you can add more then one image')
                     ->schema([
-                        FileUpload::make('images')->image()->required()->multiple(),
+                        FileUpload::make('images')->disk('projects')->image()->required()->multiple(),
                     ])
                 ])->columnSpan(1)
 

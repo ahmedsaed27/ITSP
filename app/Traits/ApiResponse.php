@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Storage;
 
 trait ApiResponse{
 
-    public function success($status = 200 , $message , $data){
+    public function success(int $status = 200 , string $message , array|object $data){
         return response()->json([
             'status' => $status,
             'message' => $message,
@@ -14,27 +14,44 @@ trait ApiResponse{
     }
 
 
-    public function error($status = 400 , $message , $data){
+    public function error(int $status = 400 , string $message){
         return response()->json([
             'status' => $status,
             'message' => $message,
-            'error' => $data
+        ] , $status);
+    }
+
+
+    public function deleted(int $status = 200){
+        return response()->json([
+            'status' => $status,
+            'message' => 'Record deleted successfully.',
         ] , $status);
     }
 
 
     public function FileUploade($file , $fileSystem){
-       
+
         $imagePath = Storage::disk($fileSystem)->put('/', $file);
-    
-        return $imagePath;
+
+        $imageName = basename($imagePath);
+
+        return $imageName;
+        // return $imagePath;
     }
 
     public function unlinkFile($fileSystem , array $files)
     {
         foreach ($files as $file) {
-            if (Storage::disk($fileSystem)->exists($file)) {
-                Storage::disk($fileSystem)->delete($file);
+
+            $relativePath = parse_url($file, PHP_URL_PATH);
+
+            // Use basename to get the filename
+            $filename = basename($relativePath);
+
+            // Check if the file exists and delete it
+            if (Storage::disk($fileSystem)->exists($filename)) {
+                Storage::disk($fileSystem)->delete($filename);
             }
         }
 
