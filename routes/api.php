@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\ContactUs\ContactUs;
 use App\Http\Controllers\Api\V1\Jobs\Jobs;
 use App\Http\Controllers\Api\V1\Projects\Projects;
 use App\Http\Controllers\Api\V1\Reels\Reels;
+use App\Http\Controllers\Api\V1\Services\Services;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +27,7 @@ Route::middleware('throttle' , 'api')->group(function(){
     Route::apiResource('applicant' , Applicant::class);
     Route::apiResource('jobs' , Jobs::class);
     Route::apiResource('reels' , Reels::class)->except('create' , 'update' , 'show', 'destroy');
+    Route::apiResource('services' , Services::class)->except('create' , 'update' , 'show', 'destroy');
     Route::apiResource('contact' , ContactUs::class);
 
     Route::controller(Jobs::class)->group(function(){
