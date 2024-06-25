@@ -31,12 +31,12 @@ class ContactUsResource extends Resource
 
     public static function form(Form $form): Form
     {
-        ['name' , 'position' , 'company' , 'phone' , 'needed' , 'other'];
         return $form
             ->schema([
                 Section::make()
                 ->schema([
                     TextInput::make('name')->required(),
+                    TextInput::make('email')->required()->email()->unique(table:'contact_us' , column:'email' , ignoreRecord:true),
                     TextInput::make('position')->required(),
                     TextInput::make('company')->required(),
                     TextInput::make('phone')->numeric()->required(),
@@ -51,6 +51,7 @@ class ContactUsResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')->searchable(),
+                TextColumn::make('email')->searchable(),
                 TextColumn::make('position')->searchable(),
                 TextColumn::make('company')->searchable(),
                 TextColumn::make('phone')->searchable(),

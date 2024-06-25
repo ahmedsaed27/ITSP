@@ -55,9 +55,11 @@ class ContactUs extends Controller
      */
     public function show(string $id)
     {
-        $data = ModelsContactUs::findOr($id, function () {
+        $data = ModelsContactUs::find($id);
+
+        if(!$data){
             return $this->error(500, 'Data not found');
-        });
+        }
 
         return $this->success(status: 200, message: 'Data retrieved successfully.' , data:$data);
     }
@@ -69,9 +71,11 @@ class ContactUs extends Controller
     {
         try{
 
-            $data = ModelsContactUs::findOr($id, function () {
+            $data = ModelsContactUs::find($id);
+
+            if(!$data){
                 return $this->error(500, 'Data not found');
-            });
+            }
 
             DB::beginTransaction();
             $data->update($request->validated());
@@ -95,9 +99,11 @@ class ContactUs extends Controller
      */
     public function destroy(string $id)
     {
-        $data = ModelsContactUs::findOr($id, function () {
+        $data = ModelsContactUs::find($id);
+
+        if(!$data){
             return $this->error(500, 'Data not found');
-        });
+        }
 
         $data->delete();
 

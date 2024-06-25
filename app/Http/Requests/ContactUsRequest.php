@@ -25,6 +25,7 @@ class ContactUsRequest extends FormRequest
     {
         return [
             'name' => 'required|string',
+            'email' => 'required|email|unique:contact_us,email,'.$this->contact,
             'position' => 'required|string',
             'company' => 'required|string',
             'phone' => 'required|numeric',

@@ -11,7 +11,7 @@ class ContactUs extends Model
 
     protected $table = 'contact_us';
 
-    protected $fillable = ['name' , 'position' , 'company' , 'phone' , 'needed' , 'other'];
+    protected $fillable = ['name' , 'email','position' , 'company' , 'phone' , 'needed' , 'other'];
 
     public $timestamps = true;
 }
