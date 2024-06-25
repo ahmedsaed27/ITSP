@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ContactUsResource\Pages;
 use App\Filament\Resources\ContactUsResource\RelationManagers;
 use App\Models\ContactUs;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Section;
@@ -17,7 +18,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class ContactUsResource extends Resource
+class ContactUsResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = ContactUs::class;
 
@@ -26,8 +27,26 @@ class ContactUsResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Contact Us';
 
+    protected static ?string $navigationGroup = 'Social';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+        ];
+    }
 
     public static function form(Form $form): Form
     {
@@ -40,7 +59,7 @@ class ContactUsResource extends Resource
                     TextInput::make('position')->required(),
                     TextInput::make('company')->required(),
                     TextInput::make('phone')->numeric()->required(),
-                    TextInput::make('needed')->required()->columnSpan(2),
+                    TextInput::make('needed')->required(),
                     MarkdownEditor::make('other')->columnSpan(2)
                 ])->columns(2)
             ]);
