@@ -15,6 +15,10 @@ use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Property;
 use PhpParser\NodeTraverser;
 use PHPStan\Analyser\Scope;
+use PHPStan\PhpDocParser\Ast\PhpDoc\GenericTagValueNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
+use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
+use Rector\Comments\NodeDocBlock\DocBlockUpdater;
 use Rector\NodeAnalyzer\ParamAnalyzer;
 use Rector\NodeManipulator\PropertyFetchAssignManipulator;
 use Rector\NodeManipulator\PropertyManipulator;
@@ -60,13 +64,25 @@ final class ReadOnlyPropertyRector extends AbstractScopeAwareRector implements M
      * @var \Rector\PhpParser\Node\BetterNodeFinder
      */
     private $betterNodeFinder;
-    public function __construct(PropertyManipulator $propertyManipulator, PropertyFetchAssignManipulator $propertyFetchAssignManipulator, ParamAnalyzer $paramAnalyzer, VisibilityManipulator $visibilityManipulator, BetterNodeFinder $betterNodeFinder)
+    /**
+     * @readonly
+     * @var \Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory
+     */
+    private $phpDocInfoFactory;
+    /**
+     * @readonly
+     * @var \Rector\Comments\NodeDocBlock\DocBlockUpdater
+     */
+    private $docBlockUpdater;
+    public function __construct(PropertyManipulator $propertyManipulator, PropertyFetchAssignManipulator $propertyFetchAssignManipulator, ParamAnalyzer $paramAnalyzer, VisibilityManipulator $visibilityManipulator, BetterNodeFinder $betterNodeFinder, PhpDocInfoFactory $phpDocInfoFactory, DocBlockUpdater $docBlockUpdater)
     {
         $this->propertyManipulator = $propertyManipulator;
         $this->propertyFetchAssignManipulator = $propertyFetchAssignManipulator;
         $this->paramAnalyzer = $paramAnalyzer;
         $this->visibilityManipulator = $visibilityManipulator;
         $this->betterNodeFinder = $betterNodeFinder;
+        $this->phpDocInfoFactory = $phpDocInfoFactory;
+        $this->docBlockUpdater = $docBlockUpdater;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -116,7 +132,8 @@ CODE_SAMPLE
             return null;
         }
         $hasChanged = \false;
-        foreach ($node->getMethods() as $classMethod) {
+        $classMethod = $node->getMethod(MethodName::CONSTRUCT);
+        if ($classMethod instanceof ClassMethod) {
             foreach ($classMethod->params as $param) {
                 $justChanged = $this->refactorParam($node, $classMethod, $param, $scope);
                 // different variable to ensure $hasRemoved not replaced
@@ -169,7 +186,27 @@ CODE_SAMPLE
         if ($attributeGroups !== []) {
             $property->setAttribute(AttributeKey::ORIGINAL_NODE, null);
         }
+        $this->removeReadOnlyDoc($property);
         return $property;
+    }
+    /**
+     * @param \PhpParser\Node\Stmt\Property|\PhpParser\Node\Param $node
+     */
+    private function removeReadOnlyDoc($node) : void
+    {
+        $phpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($node);
+        $readonlyDoc = $phpDocInfo->getByName('readonly');
+        if (!$readonlyDoc instanceof PhpDocTagNode) {
+            return;
+        }
+        if (!$readonlyDoc->value instanceof GenericTagValueNode) {
+            return;
+        }
+        if ($readonlyDoc->value->value !== '') {
+            return;
+        }
+        $phpDocInfo->removeByName('readonly');
+        $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($node);
     }
     private function refactorParam(Class_ $class, ClassMethod $classMethod, Param $param, Scope $scope) : ?\PhpParser\Node\Param
     {
@@ -179,11 +216,11 @@ CODE_SAMPLE
         if ($param->type === null) {
             return null;
         }
-        // promoted property?
-        if ($this->propertyManipulator->isPropertyChangeableExceptConstructor($class, $param, $scope)) {
+        // early check not property promotion and already readonly
+        if ($param->flags === 0 || $this->visibilityManipulator->isReadonly($param)) {
             return null;
         }
-        if ($this->visibilityManipulator->isReadonly($param)) {
+        if ($this->propertyManipulator->isPropertyChangeableExceptConstructor($class, $param, $scope)) {
             return null;
         }
         if ($this->paramAnalyzer->isParamReassign($classMethod, $param)) {
@@ -192,7 +229,11 @@ CODE_SAMPLE
         if ($this->isPromotedPropertyAssigned($class, $param)) {
             return null;
         }
+        if ($param->attrGroups !== []) {
+            $param->setAttribute(AttributeKey::ORIGINAL_NODE, null);
+        }
         $this->visibilityManipulator->makeReadonly($param);
+        $this->removeReadOnlyDoc($param);
         return $param;
     }
     private function isPromotedPropertyAssigned(Class_ $class, Param $param) : bool

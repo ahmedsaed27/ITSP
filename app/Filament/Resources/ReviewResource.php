@@ -26,7 +26,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\ReviewResource\RelationManagers;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 
-class ReviewResource extends Resource implements HasShieldPermissions
+class ReviewResource extends Resource
 {
     protected static ?string $model = Review::class;
 
@@ -39,17 +39,6 @@ class ReviewResource extends Resource implements HasShieldPermissions
     protected static ?int $navigationSort = 3;
 
 
-    public static function getPermissionPrefixes(): array
-    {
-        return [
-            'view',
-            'view_any',
-            'create',
-            'update',
-            'delete',
-            'delete_any',
-        ];
-    }
 
 
     public static function getNavigationBadge(): ?string
@@ -98,7 +87,7 @@ class ReviewResource extends Resource implements HasShieldPermissions
                         'mail_to' => $data['mail_to'],
                         'date' => $data['date']
                     ]);
-                    
+
                     Notification::make()
                     ->success()
                     ->title('interview created successfuly')
@@ -135,12 +124,5 @@ class ReviewResource extends Resource implements HasShieldPermissions
         return false;
     }
 
-
-    public static function canViewAny(): bool
-    {
-        $userType = auth()->user()->type;
-
-        return $userType == 0 || $userType == 2;
-    }
 
 }

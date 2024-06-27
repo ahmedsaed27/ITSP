@@ -38,10 +38,12 @@
     - [Customizing actions](#customizing-actions)
     - [Authorizing actions](#authorizing-actions)
 - [Intercepting events](#intercepting-events)
+- [Render Hooks](#render-hooks)
 - [Tricks](#tricks)
   - [Editing event after drag and drop](#editing-event-after-drag-and-drop)
   - [Creating events on day selection](#creating-events-on-day-selection)
   - [Creating events with additional data](#creating-events-with-additional-data)
+  - [Event tooltip on hover](#event-tooltip-on-hover)
   - [Adding the widget to a Blade view](#adding-the-widget-to-a-blade-view)
   - [Share your tricks](#share-your-tricks)
 - [Changelog](#changelog)
@@ -218,6 +220,31 @@ class AdminPanelProvider extends PanelProvider
 }
 ```
 
+```php
+<?php
+namespace App\Filament\Widgets;
+
+use Saade\FilamentFullCalendar\Widgets\FullCalendarWidget;
+use App\Models\Event;
+
+class CalendarWidget extends FullCalendarWidget
+{
+    public Model | string | null $model = Event::class;
+
+    public function config(): array
+    {
+        return [
+            'firstDay' => 1,
+            'headerToolbar' => [
+                'left' => 'dayGridWeek,dayGridDay',
+                'center' => 'title',
+                'right' => 'prev,next today',
+            ],
+        ];
+    }
+}
+```
+
 ## Available methods
 
 ### schedulerLicenseKey(`string` | `null` $licenseKey)
@@ -366,6 +393,26 @@ See the [InteractsWithEvents](https://github.com/saade/filament-fullcalendar/blo
 
 <br>
 
+# Render Hooks
+
+If you want to customize the calendar's event rendering, you can use Fullcalendar's built in [Render Hooks](https://fullcalendar.io/docs/event-render-hooks) for that. All the hooks are supported.
+
+Here's an example of how you can use the `eventDidMount` hook to add a custom implementation:
+```php
+    public function eventDidMount(): string
+    {
+        return <<<JS
+            function({ event, timeText, isStart, isEnd, isMirror, isPast, isFuture, isToday, el, view }){
+                // Write your custom implementation here
+            }
+        JS;
+    }
+```
+
+For another example, see the [Event tooltip on hover](#event-tooltip-on-hover) trick.
+
+<br>
+
 # Tricks
 
 ## Editing event after drag and drop
@@ -397,9 +444,6 @@ You can fill the form with the selected day's date by using the `mountUsing` met
 
 ```php
 use Saade\FilamentFullCalendar\Actions\CreateAction;
-...
-...
-...
 
 protected function headerActions(): array
  {
@@ -435,6 +479,24 @@ protected function headerActions(): array
      ];
  }
 ```
+
+## Event tooltip on hover
+
+You can add a tooltip to fully show the event title when the user hovers over the event via JavaScript on the `eventDidMount` method:
+
+```php
+public function eventDidMount(): string
+{
+    return <<<JS
+        function({ event, timeText, isStart, isEnd, isMirror, isPast, isFuture, isToday, el, view }){
+            el.setAttribute("x-tooltip", "tooltip");
+            el.setAttribute("x-data", "{ tooltip: '"+event.title+"' }");
+        }
+    JS;
+}
+```
+
+The JavaScript code returned by `eventDidMount()` will be added to [the FullCalendar's `eventDidMount` event render hook](https://fullcalendar.io/docs/event-render-hooks).
 
 ## Adding the widget to a Blade view
 

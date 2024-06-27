@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202402\Symfony\Component\Console\Question;
+namespace RectorPrefix202406\Symfony\Component\Console\Question;
 
-use RectorPrefix202402\Symfony\Component\Console\Exception\InvalidArgumentException;
-use RectorPrefix202402\Symfony\Component\Console\Exception\LogicException;
+use RectorPrefix202406\Symfony\Component\Console\Exception\InvalidArgumentException;
+use RectorPrefix202406\Symfony\Component\Console\Exception\LogicException;
 /**
  * Represents a Question.
  *
@@ -44,7 +44,7 @@ class Question
      */
     private $validator;
     /**
-     * @var string|int|bool|null|float
+     * @var bool|float|int|string|null
      */
     private $default;
     /**
@@ -77,7 +77,7 @@ class Question
     }
     /**
      * Returns the default answer.
-     * @return string|bool|int|float|null
+     * @return bool|float|int|string|null
      */
     public function getDefault()
     {

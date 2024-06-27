@@ -61,17 +61,17 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 
 DatePicker::make('date_of_birth')
-    ->displayFormat(function () {
+    ->displayFormat(function (): string {
         if (auth()->user()->country_id === 'us') {
-            return 'm/d/Y'
-        } else {
-            return 'd/m/Y'
+            return 'm/d/Y';
         }
+
+        return 'd/m/Y';
     })
 
 Select::make('user_id')
-    ->options(function () {
-        return User::all()->pluck('name', 'id');
+    ->options(function (): array {
+        return User::all()->pluck('name', 'id')->all();
     })
 
 TextInput::make('middle_name')
@@ -518,7 +518,7 @@ TextInput::make('password')
 
 > If you're building a form inside your Livewire component, make sure you have set up the [form's model](adding-a-form-to-a-livewire-component#setting-a-form-model). Otherwise, Filament doesn't know which model to use to retrieve the relationship from.
 
-As well as being able to give structure to fields, [layout components](layout/getting-started) are also able to "teleport" their nested fields into a relationship. Filament will handle loading data from a `HasOne`, `BelongsTo` or `MorphOne` Eloquent relationship, and then it will save the data back to the same relationship. To set this behaviour up, you can use the `relationship()` method on any layout component:
+As well as being able to give structure to fields, [layout components](layout/getting-started) are also able to "teleport" their nested fields into a relationship. Filament will handle loading data from a `HasOne`, `BelongsTo` or `MorphOne` Eloquent relationship, and then it will save the data back to the same relationship. To set this behavior up, you can use the `relationship()` method on any layout component:
 
 ```php
 use Filament\Forms\Components\Fieldset;

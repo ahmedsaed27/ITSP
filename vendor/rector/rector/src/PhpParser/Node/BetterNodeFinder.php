@@ -8,7 +8,6 @@ use PhpParser\Node\Expr\Closure;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Class_;
-use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Function_;
 use PhpParser\NodeFinder;
@@ -16,7 +15,7 @@ use PhpParser\NodeTraverser;
 use Rector\NodeAnalyzer\ClassAnalyzer;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\PhpDocParser\NodeTraverser\SimpleCallableNodeTraverser;
-use RectorPrefix202402\Webmozart\Assert\Assert;
+use RectorPrefix202406\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\PhpParser\Node\BetterNodeFinder\BetterNodeFinderTest
  */
@@ -139,7 +138,7 @@ final class BetterNodeFinder
     /**
      * @api symfony
      * @param Node[] $nodes
-     * @return ClassLike|null
+     * @return Class_|null
      */
     public function findFirstNonAnonymousClass(array $nodes) : ?Node
     {

@@ -338,19 +338,6 @@ Action::make('updateAuthor')
     ->modalWidth(MaxWidth::FiveExtraLarge)
 ```
 
-## Conditionally hiding the modal
-
-You may have a need to conditionally show a modal for confirmation reasons while falling back to the default action. This can be achieved using `modalHidden()`:
-
-```php
-Action::make('create')
-    ->action(function (array $data): void {
-        // ...
-    })
-    ->modalHidden(fn (): bool => $this->role !== 'admin')
-    ->modalContent(view('filament.pages.actions.create'))
-```
-
 ## Executing code when the modal opens
 
 You may execute code within a closure when the modal opens, by passing it to the `mountUsing()` method:
@@ -511,12 +498,35 @@ Action::make('updateAuthor')
     ->closeModalByClickingAway(false)
 ```
 
-If you'd like to change the behaviour for all modals in the application, you can do so by calling `Modal::closedByClickingAway()` inside a service provider or middleware:
+If you'd like to change the behavior for all modals in the application, you can do so by calling `Modal::closedByClickingAway()` inside a service provider or middleware:
 
 ```php
 use Filament\Support\View\Components\Modal;
 
 Modal::closedByClickingAway(false);
+```
+
+## Closing the modal by escaping
+
+By default, when you press escape on a modal, it will close itself. If you wish to disable this behavior for a specific action, you can use the `closedByEscaping(false)` method:
+
+```php
+Action::make('updateAuthor')
+    ->form([
+        // ...
+    ])
+    ->action(function (array $data): void {
+        // ...
+    })
+    ->closedByEscaping(false)
+```
+
+If you'd like to change the behavior for all modals in the application, you can do so by calling `Modal::closedByEscaping()` inside a service provider or middleware:
+
+```php
+use Filament\Support\View\Components\Modal;
+
+Modal::closedByEscaping(false);
 ```
 
 ## Hiding the modal close button
@@ -540,4 +550,60 @@ If you'd like to hide the close button for all modals in the application, you ca
 use Filament\Support\View\Components\Modal;
 
 Modal::closeButton(false);
+```
+
+## Preventing the modal from autofocusing
+
+By default, modals will autofocus on the first focusable element when opened. If you wish to disable this behavior, you can use the `modalAutofocus(false)` method:
+
+```php
+Action::make('updateAuthor')
+    ->form([
+        // ...
+    ])
+    ->action(function (array $data): void {
+        // ...
+    })
+    ->modalAutofocus(false)
+```
+
+If you'd like to disable autofocus for all modals in the application, you can do so by calling `Modal::autofocus(false)` inside a service provider or middleware:
+
+```php
+use Filament\Support\View\Components\Modal;
+
+Modal::autofocus(false);
+```
+
+## Optimizing modal configuration methods
+
+When you use database queries or other heavy operations inside modal configuration methods like `modalHeading()`, they can be executed more than once. This is because Filament uses these methods to decide whether to render the modal or not, and also to render the modal's content.
+
+To skip the check that Filament does to decide whether to render the modal, you can use the `modal()` method, which will inform Filament that the modal exists for this action and it does not need to check again:
+
+```php
+Action::make('updateAuthor')
+    ->modal()
+```
+
+## Conditionally hiding the modal
+
+You may have a need to conditionally show a modal for confirmation reasons while falling back to the default action. This can be achieved using `modalHidden()`:
+
+```php
+Action::make('create')
+    ->action(function (array $data): void {
+        // ...
+    })
+    ->modalHidden(fn (): bool => $this->role !== 'admin')
+    ->modalContent(view('filament.pages.actions.create'))
+```
+
+## Adding extra attributes to the modal window
+
+You may also pass extra HTML attributes to the modal window using `extraModalWindowAttributes()`:
+
+```php
+Action::make('updateAuthor')
+    ->extraModalWindowAttributes(['class' => 'update-author-modal'])
 ```

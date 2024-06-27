@@ -27,21 +27,35 @@ final class JoinColumnAttributeTransformer implements PropertyAttributeTransform
      */
     public function transform(EntityMapping $entityMapping, $property) : void
     {
-        $manyToOnePropertyMapping = $entityMapping->matchManyToOnePropertyMapping($property);
-        if (!\is_array($manyToOnePropertyMapping)) {
+        $this->transformMapping($property, $entityMapping->matchManyToManyPropertyMapping($property)['joinTable'] ?? null);
+        $this->transformMapping($property, $entityMapping->matchManyToOnePropertyMapping($property));
+    }
+    public function getClassName() : string
+    {
+        return MappingClass::JOIN_COLUMN;
+    }
+    /**
+     * @param array<string, array<string, mixed>>|null $mapping
+     * @param \PhpParser\Node\Stmt\Property|\PhpParser\Node\Param $property
+     */
+    private function transformMapping($property, ?array $mapping) : void
+    {
+        if (!\is_array($mapping)) {
             return;
         }
-        $joinColumns = $manyToOnePropertyMapping['joinColumns'] ?? null;
+        $singleJoinColumn = $mapping['joinColumn'] ?? null;
+        if (\is_array($singleJoinColumn)) {
+            $name = $singleJoinColumn['name'];
+            unset($singleJoinColumn['name']);
+            $mapping['joinColumns'][$name] = $singleJoinColumn;
+        }
+        $joinColumns = $mapping['joinColumns'] ?? null;
         if (!\is_array($joinColumns)) {
             return;
         }
         foreach ($joinColumns as $columnName => $joinColumn) {
             $property->attrGroups[] = $this->createJoinColumnAttrGroup($columnName, $joinColumn);
         }
-    }
-    public function getClassName() : string
-    {
-        return MappingClass::JOIN_COLUMN;
     }
     /**
      * @param int|string $columnName

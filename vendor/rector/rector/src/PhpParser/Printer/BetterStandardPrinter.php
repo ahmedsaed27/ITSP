@@ -3,13 +3,17 @@
 declare (strict_types=1);
 namespace Rector\PhpParser\Printer;
 
-use RectorPrefix202402\Nette\Utils\Strings;
+use RectorPrefix202406\Nette\Utils\Strings;
 use PhpParser\Comment;
 use PhpParser\Node;
+use PhpParser\Node\Arg;
+use PhpParser\Node\AttributeGroup;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ArrowFunction;
+use PhpParser\Node\Expr\CallLike;
 use PhpParser\Node\Expr\Closure;
+use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\Ternary;
 use PhpParser\Node\Expr\Yield_;
 use PhpParser\Node\Param;
@@ -113,6 +117,15 @@ final class BetterStandardPrinter extends Standard
         $content = parent::p($node, $parentFormatPreserved);
         return $node->getAttribute(AttributeKey::WRAPPED_IN_PARENTHESES) === \true ? '(' . $content . ')' : $content;
     }
+    protected function pAttributeGroup(AttributeGroup $attributeGroup) : string
+    {
+        $ret = parent::pAttributeGroup($attributeGroup);
+        $comment = $attributeGroup->getAttribute(AttributeKey::ATTRIBUTE_COMMENT);
+        if (!\in_array($comment, ['', null], \true)) {
+            $ret .= ' // ' . $comment;
+        }
+        return $ret;
+    }
     protected function pExpr_ArrowFunction(ArrowFunction $arrowFunction) : string
     {
         if (!$arrowFunction->hasAttribute(AttributeKey::COMMENT_CLOSURE_RETURN_MIRRORED)) {
@@ -124,8 +137,7 @@ final class BetterStandardPrinter extends Standard
         if ($comments === []) {
             return parent::pExpr_ArrowFunction($arrowFunction);
         }
-        $indentSize = SimpleParameterProvider::provideIntParameter(Option::INDENT_SIZE);
-        $indent = \str_repeat($this->getIndentCharacter(), $this->indentLevel) . \str_repeat($this->getIndentCharacter(), $indentSize);
+        $indent = $this->resolveIndentSpaces();
         $text = "\n" . $indent;
         foreach ($comments as $key => $comment) {
             $commentText = $key > 0 ? $indent . $comment->getText() : $comment->getText();
@@ -336,7 +348,7 @@ final class BetterStandardPrinter extends Standard
     /**
      * Invoke re-print even if only raw value was changed.
      * That allows PHPStan to use int strict types, while changing the value with literal "_"
-     * @return string|int
+     * @return int|string
      */
     protected function pScalar_LNumber(LNumber $lNumber)
     {
@@ -345,12 +357,33 @@ final class BetterStandardPrinter extends Standard
         }
         return parent::pScalar_LNumber($lNumber);
     }
+    protected function pExpr_MethodCall(MethodCall $methodCall) : string
+    {
+        if (SimpleParameterProvider::provideBoolParameter(Option::NEW_LINE_ON_FLUENT_CALL) === \false) {
+            return parent::pExpr_MethodCall($methodCall);
+        }
+        if ($methodCall->var instanceof CallLike) {
+            foreach ($methodCall->args as $arg) {
+                if (!$arg instanceof Arg) {
+                    continue;
+                }
+                $arg->value->setAttribute(AttributeKey::ORIGINAL_NODE, null);
+            }
+            return $this->pDereferenceLhs($methodCall->var) . "\n" . $this->resolveIndentSpaces() . '->' . $this->pObjectProperty($methodCall->name) . '(' . $this->pMaybeMultiline($methodCall->args) . ')';
+        }
+        return parent::pExpr_MethodCall($methodCall);
+    }
     /**
      * Keep attributes on newlines
      */
     protected function pParam(Param $param) : string
     {
         return $this->pAttrGroups($param->attrGroups) . $this->pModifiers($param->flags) . ($param->type instanceof Node ? $this->p($param->type) . ' ' : '') . ($param->byRef ? '&' : '') . ($param->variadic ? '...' : '') . $this->p($param->var) . ($param->default instanceof Expr ? ' = ' . $this->p($param->default) : '');
+    }
+    private function resolveIndentSpaces() : string
+    {
+        $indentSize = SimpleParameterProvider::provideIntParameter(Option::INDENT_SIZE);
+        return \str_repeat($this->getIndentCharacter(), $this->indentLevel) . \str_repeat($this->getIndentCharacter(), $indentSize);
     }
     /**
      * Must be a method to be able to react to changed parameter in tests
@@ -374,7 +407,7 @@ final class BetterStandardPrinter extends Standard
     {
         $stmts = \array_values($stmts);
         if (\count($stmts) === 1 && $stmts[0] instanceof FileWithoutNamespace) {
-            return $stmts[0]->stmts;
+            return \array_values($stmts[0]->stmts);
         }
         return $stmts;
     }

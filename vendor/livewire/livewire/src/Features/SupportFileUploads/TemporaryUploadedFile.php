@@ -23,6 +23,14 @@ class TemporaryUploadedFile extends UploadedFile
         $tmpFile = tmpfile();
 
         parent::__construct(stream_get_meta_data($tmpFile)['uri'], $this->path);
+
+        // While running tests, update the last modified timestamp to the current
+        // Carbon timestamp (which respects time traveling), because otherwise
+        // cleanupOldUploads() will mess up with the filesystem...
+        if (app()->runningUnitTests())
+        {
+            @touch($this->path(), now()->timestamp);
+        }
     }
 
     public function getPath(): string
@@ -37,7 +45,7 @@ class TemporaryUploadedFile extends UploadedFile
 
     public function getSize(): int
     {
-        if (app()->runningUnitTests() && str($this->getfilename())->contains('-size=')) {
+        if (app()->runningUnitTests() && str($this->getFilename())->contains('-size=')) {
             return (int) str($this->getFilename())->between('-size=', '.')->__toString();
         }
 
@@ -167,7 +175,7 @@ class TemporaryUploadedFile extends UploadedFile
 
     public function hashName($path = null)
     {
-        if (app()->runningUnitTests() && str($this->getfilename())->contains('-hash=')) {
+        if (app()->runningUnitTests() && str($this->getFilename())->contains('-hash=')) {
             return str($this->getFilename())->between('-hash=', '-')->value();
         }
 

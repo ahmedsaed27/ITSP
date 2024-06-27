@@ -141,6 +141,20 @@ Builder\Block::make('paragraph')
 
 <AutoScreenshot name="forms/fields/builder/icons" alt="Builder with block icons in the dropdown" version="3.x" />
 
+### Adding icons to the header of blocks
+
+By default, blocks in the builder don't have an icon next to the header label, just in the dropdown to add new blocks. You may enable this using the `blockIcons()` method:
+
+```php
+use Filament\Forms\Components\Builder;
+
+Builder::make('content')
+    ->blocks([
+        // ...
+    ])
+    ->blockIcons()
+```
+
 ## Adding items
 
 An action button is displayed below the builder to allow the user to add a new item.
@@ -387,7 +401,7 @@ Builder::make('content')
 
 ### Confirming builder actions with a modal
 
-You can confirm actions with a modal by using the `requiresConfirmation()` method on the action object. You may use any [modal customization method](../../actions/modals) to change its content and behaviour:
+You can confirm actions with a modal by using the `requiresConfirmation()` method on the action object. You may use any [modal customization method](../../actions/modals) to change its content and behavior:
 
 ```php
 use Filament\Forms\Components\Actions\Action;
@@ -462,4 +476,99 @@ $state[Str::uuid()] = [
 
 // Set the new data for the builder
 $component->state($state);
+```
+
+## Previewing blocks
+
+If you prefer to render read-only previews in the builder instead of the blocks' forms, you can use the `blockPreviews()` method. This will render each block's `preview()` instead of the form. Block data will be passed to the preview Blade view in a variable with the same name:
+
+```php
+use Filament\Forms\Components\Builder;
+use Filament\Forms\Components\Builder\Block;
+use Filament\Forms\Components\TextInput;
+
+Builder::make('content')
+    ->blockPreviews()
+    ->blocks([
+        Block::make('heading')
+            ->schema([
+                TextInput::make('text')
+                    ->placeholder('Default heading'),
+            ])
+            ->preview('filament.content.blocks-previews.heading'),
+    ])
+```
+
+In `/resources/views/filament/content/block-previews/heading.blade.php`, you can access the block data like so:
+
+```blade
+<h1>
+    {{ $text ?? 'Default heading' }}
+</h1>
+```
+
+### Interactive block previews
+
+By default, preview content is not interactive, and clicking it will open the Edit modal for that block to manage its settings. If you have links and buttons that you'd like to remain interactive in the block previews, you can use the `areInteractive: true` argument of the `blockPreviews()` method:
+
+```php
+use Filament\Forms\Components\Builder;
+
+Builder::make('content')
+    ->blockPreviews(areInteractive: true)
+    ->blocks([
+        //
+    ])
+```
+
+## Testing builders
+
+Internally, builders generate UUIDs for items to keep track of them in the Livewire HTML easier. This means that when you are testing a form with a builder, you need to ensure that the UUIDs are consistent between the form and the test. This can be tricky, and if you don't do it correctly, your tests can fail as the tests are expecting a UUID, not a numeric key.
+
+However, since Livewire doesn't need to keep track of the UUIDs in a test, you can disable the UUID generation and replace them with numeric keys, using the `Builder::fake()` method at the start of your test:
+
+```php
+use Filament\Forms\Components\Builder;
+use function Pest\Livewire\livewire;
+
+$undoBuilderFake = Builder::fake();
+
+livewire(EditPost::class, ['record' => $post])
+    ->assertFormSet([
+        'content' => [
+            [
+                'type' => 'heading',
+                'data' => [
+                    'content' => 'Hello, world!',
+                    'level' => 'h1',
+                ],
+            ],
+            [
+                'type' => 'paragraph',
+                'data' => [
+                    'content' => 'This is a test post.',
+                ],
+            ],
+        ],
+        // ...
+    ]);
+
+$undoBuilderFake();
+```
+
+You may also find it useful to access test the number of items in a repeater by passing a function to the `assertFormSet()` method:
+
+```php
+use Filament\Forms\Components\Builder;
+use function Pest\Livewire\livewire;
+
+$undoBuilderFake = Builder::fake();
+
+livewire(EditPost::class, ['record' => $post])
+    ->assertFormSet(function (array $state) {
+        expect($state['content'])
+            ->toHaveCount(2);
+    });
+
+$undoBuilderFake();
 ```

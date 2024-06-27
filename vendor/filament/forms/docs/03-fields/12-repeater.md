@@ -449,7 +449,7 @@ Instead of using a nested array to store data, simple repeaters use a flat array
 
 ## Using `$get()` to access parent field values
 
-All form components are able to [use `$get()` and `$set()`](../advanced) to access another field's value. However, you might experience unexpected behaviour when using this inside the repeater's schema.
+All form components are able to [use `$get()` and `$set()`](../advanced) to access another field's value. However, you might experience unexpected behavior when using this inside the repeater's schema.
 
 This is because `$get()` and `$set()`, by default, are scoped to the current repeater item. This means that you are able to interact with another field inside that repeater item easily without knowing which repeater item the current form component belongs to.
 
@@ -515,7 +515,7 @@ Repeater::make('answers')
     ])
 ```
 
-The behaviour of the `distinct()` validation depends on the data type that the field handles
+The behavior of the `distinct()` validation depends on the data type that the field handles
 
 - If the field returns a boolean, like a [checkbox](checkbox) or [toggle](toggle), the validation will ensure that only one item has a value of `true`. There may be many fields in the repeater that have a value of `false`.
 - Otherwise, for fields like a [select](select), [radio](radio), [checkbox list](checkbox-list), or [toggle buttons](toggle-buttons), the validation will ensure that each option may only be selected once across all items in the repeater.
@@ -538,7 +538,7 @@ Repeater::make('answers')
 
 This method will automatically enable the `distinct()` and `live()` methods on the field.
 
-Depending on the data type that the field handles, the behaviour of the `fixIndistinctState()` adapts:
+Depending on the data type that the field handles, the behavior of the `fixIndistinctState()` adapts:
 
 - If the field returns a boolean, like a [checkbox](checkbox) or [toggle](toggle), and one of the fields is enabled, Filament will automatically disable all other enabled fields on behalf of the user.
 - Otherwise, for fields like a [select](select), [radio](radio), [checkbox list](checkbox-list), or [toggle buttons](toggle-buttons), when a user selects an option, Filament will automatically deselect all other usages of that option on behalf of the user.
@@ -595,7 +595,7 @@ Repeater::make('members')
 
 ### Confirming repeater actions with a modal
 
-You can confirm actions with a modal by using the `requiresConfirmation()` method on the action object. You may use any [modal customization method](../../actions/modals) to change its content and behaviour:
+You can confirm actions with a modal by using the `requiresConfirmation()` method on the action object. You may use any [modal customization method](../../actions/modals) to change its content and behavior:
 
 ```php
 use Filament\Forms\Components\Actions\Action;
@@ -662,4 +662,49 @@ $state[Str::uuid()] = [
 
 // Set the new data for the repeater
 $component->state($state);
+```
+
+## Testing repeaters
+
+Internally, repeaters generate UUIDs for items to keep track of them in the Livewire HTML easier. This means that when you are testing a form with a repeater, you need to ensure that the UUIDs are consistent between the form and the test. This can be tricky, and if you don't do it correctly, your tests can fail as the tests are expecting a UUID, not a numeric key.
+
+However, since Livewire doesn't need to keep track of the UUIDs in a test, you can disable the UUID generation and replace them with numeric keys, using the `Repeater::fake()` method at the start of your test:
+
+```php
+use Filament\Forms\Components\Repeater;
+use function Pest\Livewire\livewire;
+
+$undoRepeaterFake = Repeater::fake();
+
+livewire(EditPost::class, ['record' => $post])
+    ->assertFormSet([
+        'quotes' => [
+            [
+                'content' => 'First quote',
+            ],
+            [
+                'content' => 'Second quote',
+            ],
+        ],
+        // ...
+    ]);
+
+$undoRepeaterFake();
+```
+
+You may also find it useful to access test the number of items in a repeater by passing a function to the `assertFormSet()` method:
+
+```php
+use Filament\Forms\Components\Repeater;
+use function Pest\Livewire\livewire;
+
+$undoRepeaterFake = Repeater::fake();
+
+livewire(EditPost::class, ['record' => $post])
+    ->assertFormSet(function (array $state) {
+        expect($state['quotes'])
+            ->toHaveCount(2);
+    });
+
+$undoRepeaterFake();
 ```

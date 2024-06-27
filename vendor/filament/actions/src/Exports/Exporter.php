@@ -6,6 +6,7 @@ use Carbon\CarbonInterface;
 use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Actions\Exports\Models\Export;
 use Filament\Forms\Components\Component;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use OpenSpout\Common\Entity\Style\Style;
@@ -72,6 +73,11 @@ abstract class Exporter
     }
 
     abstract public static function getCompletedNotificationBody(Export $export): string;
+
+    public static function getCompletedNotificationTitle(Export $export): string
+    {
+        return __('filament-actions::export.notifications.completed.title');
+    }
 
     /**
      * @return array<int, object>
@@ -176,5 +182,10 @@ abstract class Exporter
     public function getXlsxHeaderCellStyle(): ?Style
     {
         return null;
+    }
+
+    public static function modifyQuery(Builder $query): Builder
+    {
+        return $query;
     }
 }

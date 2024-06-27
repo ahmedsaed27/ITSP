@@ -1,12 +1,12 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202402\Symplify\EasyParallel\Reflection;
+namespace RectorPrefix202406\Symplify\EasyParallel\Reflection;
 
 use ReflectionClass;
 use ReflectionMethod;
-use RectorPrefix202402\Symfony\Component\Console\Command\Command;
-use RectorPrefix202402\Symplify\EasyParallel\Exception\ParallelShouldNotHappenException;
+use RectorPrefix202406\Symfony\Component\Console\Command\Command;
+use RectorPrefix202406\Symplify\EasyParallel\Exception\ParallelShouldNotHappenException;
 /**
  * @api
  */

@@ -8,16 +8,16 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202402\Symfony\Component\Process;
+namespace RectorPrefix202406\Symfony\Component\Process;
 
-use RectorPrefix202402\Symfony\Component\Process\Exception\InvalidArgumentException;
-use RectorPrefix202402\Symfony\Component\Process\Exception\LogicException;
-use RectorPrefix202402\Symfony\Component\Process\Exception\ProcessFailedException;
-use RectorPrefix202402\Symfony\Component\Process\Exception\ProcessSignaledException;
-use RectorPrefix202402\Symfony\Component\Process\Exception\ProcessTimedOutException;
-use RectorPrefix202402\Symfony\Component\Process\Exception\RuntimeException;
-use RectorPrefix202402\Symfony\Component\Process\Pipes\UnixPipes;
-use RectorPrefix202402\Symfony\Component\Process\Pipes\WindowsPipes;
+use RectorPrefix202406\Symfony\Component\Process\Exception\InvalidArgumentException;
+use RectorPrefix202406\Symfony\Component\Process\Exception\LogicException;
+use RectorPrefix202406\Symfony\Component\Process\Exception\ProcessFailedException;
+use RectorPrefix202406\Symfony\Component\Process\Exception\ProcessSignaledException;
+use RectorPrefix202406\Symfony\Component\Process\Exception\ProcessTimedOutException;
+use RectorPrefix202406\Symfony\Component\Process\Exception\RuntimeException;
+use RectorPrefix202406\Symfony\Component\Process\Pipes\UnixPipes;
+use RectorPrefix202406\Symfony\Component\Process\Pipes\WindowsPipes;
 /**
  * Process is a thin wrapper around proc_* functions to easily
  * start independent PHP processes.
@@ -135,6 +135,10 @@ class Process implements \IteratorAggregate
      * @var int|null
      */
     private $latestSignal;
+    /**
+     * @var int|null
+     */
+    private $cachedExitCode;
     /**
      * @var bool|null
      */
@@ -1113,7 +1117,7 @@ class Process implements \IteratorAggregate
     public static function isTtySupported() : bool
     {
         static $isTtySupported;
-        return $isTtySupported = $isTtySupported ?? '/' === \DIRECTORY_SEPARATOR && \stream_isatty(\STDOUT);
+        return $isTtySupported = $isTtySupported ?? '/' === \DIRECTORY_SEPARATOR && \stream_isatty(\STDOUT) && @\is_writable('/dev/tty');
     }
     /**
      * Returns whether PTY is supported on the current operating system.
@@ -1183,6 +1187,17 @@ class Process implements \IteratorAggregate
         }
         $this->processInformation = \proc_get_status($this->process);
         $running = $this->processInformation['running'];
+        // In PHP < 8.3, "proc_get_status" only returns the correct exit status on the first call.
+        // Subsequent calls return -1 as the process is discarded. This workaround caches the first
+        // retrieved exit status for consistent results in later calls, mimicking PHP 8.3 behavior.
+        if (\PHP_VERSION_ID < 80300) {
+            if (!isset($this->cachedExitCode) && !$running && -1 !== $this->processInformation['exitcode']) {
+                $this->cachedExitCode = $this->processInformation['exitcode'];
+            }
+            if (isset($this->cachedExitCode) && !$running && -1 === $this->processInformation['exitcode']) {
+                $this->processInformation['exitcode'] = $this->cachedExitCode;
+            }
+        }
         $this->readPipes($running && $blocking, '\\' !== \DIRECTORY_SEPARATOR || !$running);
         if ($this->fallbackStatus && $this->isSigchildEnabled()) {
             $this->processInformation = $this->fallbackStatus + $this->processInformation;

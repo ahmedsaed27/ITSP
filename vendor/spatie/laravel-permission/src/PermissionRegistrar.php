@@ -36,8 +36,7 @@ class PermissionRegistrar
 
     public string $teamsKey;
 
-    /** @var int|string */
-    protected $teamId = null;
+    protected string|int|null $teamId = null;
 
     public string $cacheKey;
 
@@ -109,7 +108,7 @@ class PermissionRegistrar
     }
 
     /**
-     * @return int|string
+     * @return int|string|null
      */
     public function getPermissionsTeamId()
     {

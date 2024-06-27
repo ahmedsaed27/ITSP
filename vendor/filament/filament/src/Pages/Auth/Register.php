@@ -15,6 +15,7 @@ use Filament\Forms\Form;
 use Filament\Http\Responses\Auth\Contracts\RegistrationResponse;
 use Filament\Notifications\Auth\VerifyEmail;
 use Filament\Notifications\Notification;
+use Filament\Pages\Concerns\CanUseDatabaseTransactions;
 use Filament\Pages\Concerns\InteractsWithFormActions;
 use Filament\Pages\SimplePage;
 use Illuminate\Auth\EloquentUserProvider;
@@ -22,7 +23,6 @@ use Illuminate\Auth\SessionGuard;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
@@ -31,6 +31,7 @@ use Illuminate\Validation\Rules\Password;
  */
 class Register extends SimplePage
 {
+    use CanUseDatabaseTransactions;
     use InteractsWithFormActions;
     use WithRateLimiting;
 
@@ -52,7 +53,11 @@ class Register extends SimplePage
             redirect()->intended(Filament::getUrl());
         }
 
+        $this->callHook('beforeFill');
+
         $this->form->fill();
+
+        $this->callHook('afterFill');
     }
 
     public function register(): ?RegistrationResponse
@@ -60,25 +65,29 @@ class Register extends SimplePage
         try {
             $this->rateLimit(2);
         } catch (TooManyRequestsException $exception) {
-            Notification::make()
-                ->title(__('filament-panels::pages/auth/register.notifications.throttled.title', [
-                    'seconds' => $exception->secondsUntilAvailable,
-                    'minutes' => ceil($exception->secondsUntilAvailable / 60),
-                ]))
-                ->body(array_key_exists('body', __('filament-panels::pages/auth/register.notifications.throttled') ?: []) ? __('filament-panels::pages/auth/register.notifications.throttled.body', [
-                    'seconds' => $exception->secondsUntilAvailable,
-                    'minutes' => ceil($exception->secondsUntilAvailable / 60),
-                ]) : null)
-                ->danger()
-                ->send();
+            $this->getRateLimitedNotification($exception)?->send();
 
             return null;
         }
 
-        $user = DB::transaction(function () {
+        $user = $this->wrapInDatabaseTransaction(function () {
+            $this->callHook('beforeValidate');
+
             $data = $this->form->getState();
 
-            return $this->getUserModel()::create($data);
+            $this->callHook('afterValidate');
+
+            $data = $this->mutateFormDataBeforeRegister($data);
+
+            $this->callHook('beforeRegister');
+
+            $user = $this->handleRegistration($data);
+
+            $this->form->model($user)->saveRelationships();
+
+            $this->callHook('afterRegister');
+
+            return $user;
         });
 
         event(new Registered($user));
@@ -90,6 +99,28 @@ class Register extends SimplePage
         session()->regenerate();
 
         return app(RegistrationResponse::class);
+    }
+
+    protected function getRateLimitedNotification(TooManyRequestsException $exception): ?Notification
+    {
+        return Notification::make()
+            ->title(__('filament-panels::pages/auth/register.notifications.throttled.title', [
+                'seconds' => $exception->secondsUntilAvailable,
+                'minutes' => $exception->minutesUntilAvailable,
+            ]))
+            ->body(array_key_exists('body', __('filament-panels::pages/auth/register.notifications.throttled') ?: []) ? __('filament-panels::pages/auth/register.notifications.throttled.body', [
+                'seconds' => $exception->secondsUntilAvailable,
+                'minutes' => $exception->minutesUntilAvailable,
+            ]) : null)
+            ->danger();
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function handleRegistration(array $data): Model
+    {
+        return $this->getUserModel()::create($data);
     }
 
     protected function sendEmailVerificationNotification(Model $user): void
@@ -108,7 +139,7 @@ class Register extends SimplePage
             throw new Exception("Model [{$userClass}] does not have a [notify()] method.");
         }
 
-        $notification = new VerifyEmail();
+        $notification = app(VerifyEmail::class);
         $notification->url = Filament::getVerifyEmailUrl($user);
 
         $user->notify($notification);
@@ -233,5 +264,14 @@ class Register extends SimplePage
     protected function hasFullWidthFormActions(): bool
     {
         return true;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function mutateFormDataBeforeRegister(array $data): array
+    {
+        return $data;
     }
 }

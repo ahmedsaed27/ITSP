@@ -21,7 +21,7 @@ use App\Filament\Resources\TeamMembersResource\Pages;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use App\Filament\Resources\TeamMembersResource\RelationManagers;
 
-class TeamMembersResource extends Resource implements HasShieldPermissions
+class TeamMembersResource extends Resource
 {
     protected static ?string $model = TeamMembers::class;
 
@@ -34,17 +34,6 @@ class TeamMembersResource extends Resource implements HasShieldPermissions
         return static::getModel()::count();
     }
 
-    public static function getPermissionPrefixes(): array
-    {
-        return [
-            'view',
-            'view_any',
-            'create',
-            'update',
-            'delete',
-            'delete_any',
-        ];
-    }
 
     public static function form(Form $form): Form
     {
@@ -123,11 +112,4 @@ class TeamMembersResource extends Resource implements HasShieldPermissions
     }
 
 
-
-    public static function canViewAny(): bool
-    {
-        $userType = auth()->user()->type;
-
-        return $userType == 0 || $userType == 3;
-    }
 }

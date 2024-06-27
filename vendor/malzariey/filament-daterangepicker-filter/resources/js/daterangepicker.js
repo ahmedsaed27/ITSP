@@ -11,11 +11,14 @@ export default (Alpine) => {
             alwaysShowCalendars,
             autoApply,
             linkedCalendars,
+            singleCalendar,
             startDate,
             endDate,
             maxDate,
             minDate,
             timePicker,
+            timePicker24,
+            timePickerSecond,
             timePickerIncrement,
             displayFormat,
             applyLabel,
@@ -24,6 +27,9 @@ export default (Alpine) => {
             toLabel,
             customRangeLabel,
             disableCustomRange,
+            disabledDates,
+            drops,
+            opens,
             sunday,
             monday,
             tuesday,
@@ -45,6 +51,8 @@ export default (Alpine) => {
             december,
             firstDay,
             ranges,
+            maxSpan,
+            disableRange,
             separator,
             useRangeLabels,
             handleValueChangeUsing,
@@ -77,20 +85,30 @@ export default (Alpine) => {
                     return state;
                 },
                 init: function () {
+                    let momentDatesArray = [];
+
+                    if(disabledDates !== undefined && disabledDates.length > 0 ) {
+                        momentDatesArray = disabledDates.map(dateString => moment(dateString));
+                    }
+
                     $(this.$refs.daterange).daterangepicker(
                         {
                             name: name,
                             alwaysShowCalendars: alwaysShowCalendars,
                             autoApply: autoApply,
                             linkedCalendars: linkedCalendars,
+                            singleDatePicker: singleCalendar,
                             autoUpdateInput: false,
+                            drops: drops,
+                            opens: opens,
                             startDate: startDate != null ? moment(startDate) : moment(),
                             endDate: endDate != null ? moment(endDate) : moment(),
                             maxDate: maxDate != null ? moment(maxDate) : null,
                             minDate: minDate != null ? moment(minDate) : null,
                             timePicker: timePicker,
+                            timePicker24Hour: timePicker24,
+                            timePickerSeconds: timePickerSecond,
                             timePickerIncrement: timePickerIncrement,
-                            handleApplyUsing: handleValueChangeUsing,
                             showCustomRangeLabel: ! disableCustomRange,
                             locale: {
                                 format: displayFormat,
@@ -126,10 +144,23 @@ export default (Alpine) => {
                                 ],
                                 firstDay: firstDay
                             },
-                            ranges: momentRanges,
+                            ranges: disableRange ? undefined : momentRanges,
+                            maxSpan: maxSpan,
+                            isInvalidDate: (date) => {
+                                if(momentDatesArray.length > 0 ) {
+                                    return momentDatesArray.some(disabledDate => disabledDate.isSame(date, 'day'));
+                                }else{
+                                    return false;
+                                }
+                            },
+
                         },
                         function(start, end) {
-                            handleValueChangeUsing(start.format(displayFormat) + separator + end.format(displayFormat), name)
+                            if(singleCalendar){
+                                handleValueChangeUsing(start.format(displayFormat), name)
+                            }else{
+                                handleValueChangeUsing(start.format(displayFormat) + separator + end.format(displayFormat), name)
+                            }
                         }
                     );
 
@@ -153,6 +184,7 @@ export default (Alpine) => {
                         $(parent.$refs.daterange).val(parent.getRangeLabel(value));
                     })
                 },
+
             }
         },
     )

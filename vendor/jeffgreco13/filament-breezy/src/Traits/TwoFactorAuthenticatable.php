@@ -99,6 +99,15 @@ trait TwoFactorAuthenticatable
         })->all()));
     }
 
+    public function destroyRecoveryCode(string $recoveryCode): void
+    {
+        $unusedCodes = array_filter($this->two_factor_recovery_codes ?? [], fn ($code) => $code !== $recoveryCode);
+
+        $this->breezy_session->forceFill([
+            'two_factor_recovery_codes' => $unusedCodes ? encrypt(json_encode($unusedCodes)) : null,
+        ])->save();
+    }
+
     public function getTwoFactorQrCodeUrl()
     {
         return filament('filament-breezy')->getQrCodeUrl(

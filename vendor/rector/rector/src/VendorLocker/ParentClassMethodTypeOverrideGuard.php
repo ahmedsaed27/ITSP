@@ -89,18 +89,17 @@ final class ParentClassMethodTypeOverrideGuard
      */
     private function resolveParentClassMethod($classMethod) : ?MethodReflection
     {
-        if ($classMethod instanceof ClassMethod) {
-            $classReflection = $this->reflectionResolver->resolveClassReflection($classMethod);
-            if (!$classReflection instanceof ClassReflection) {
-                // we can't resolve the class, so we don't know.
-                throw new UnresolvableClassException();
-            }
-            /** @var string $methodName */
-            $methodName = $this->nodeNameResolver->getName($classMethod);
-        } else {
-            $classReflection = $classMethod->getDeclaringClass();
-            $methodName = $classMethod->getName();
+        // early got null on private method
+        if ($classMethod->isPrivate()) {
+            return null;
         }
+        $classReflection = $classMethod instanceof ClassMethod ? $this->reflectionResolver->resolveClassReflection($classMethod) : $classMethod->getDeclaringClass();
+        if (!$classReflection instanceof ClassReflection) {
+            // we can't resolve the class, so we don't know.
+            throw new UnresolvableClassException();
+        }
+        /** @var string $methodName */
+        $methodName = $classMethod instanceof ClassMethod ? $this->nodeNameResolver->getName($classMethod) : $classMethod->getName();
         $currentClassReflection = $classReflection;
         while ($this->hasClassParent($currentClassReflection)) {
             $parentClassReflection = $currentClassReflection->getParentClass();

@@ -27,7 +27,7 @@ use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 
 
-class LeaveRequestResource extends Resource implements HasShieldPermissions
+class LeaveRequestResource extends Resource
 {
     protected static ?string $model = LeaveRequest::class;
 
@@ -39,19 +39,8 @@ class LeaveRequestResource extends Resource implements HasShieldPermissions
     {
         return static::getModel()::count();
     }
-    
 
-    public static function getPermissionPrefixes(): array
-    {
-        return [
-            'view',
-            'view_any',
-            'create',
-            'update',
-            'delete',
-            'delete_any',
-        ];
-    }
+
 
     public static function form(Form $form): Form
     {
@@ -194,10 +183,4 @@ class LeaveRequestResource extends Resource implements HasShieldPermissions
         ];
     }
 
-    public static function canViewAny(): bool
-    {
-        $userType = auth()->user()->type;
-
-        return $userType == 0 || $userType == 1 || $userType == 3;
-    }
 }

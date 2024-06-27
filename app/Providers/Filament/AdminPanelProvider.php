@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Backup\Backups;
 use App\Filament\Pages\Dashboard;
+use App\Filament\Pages\Profile;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -47,7 +48,8 @@ class AdminPanelProvider extends PanelProvider
                     navigationGroup: 'Settings', // Sets the navigation group for the My Profile page (default = null)
                     hasAvatars: false, // Enables the avatar upload form component (default = false)
                     slug: 'my-profile' // Sets the slug for the profile page (default = 'my-profile')
-                ),
+                )
+                ->customMyProfilePage(Profile::class),
                 // ->enableTwoFactorAuthentication(
                 //     force: true, // force the user to enable 2FA before they can use the application (default = false)
                 // )
@@ -63,7 +65,7 @@ class AdminPanelProvider extends PanelProvider
                 ->usingPage(Backups::class)
                 ->usingPolingInterval('10s'),
 
-                \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()  
+                \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()
                 ->gridColumns([
                     'default' => 1,
                     'sm' => 2,
@@ -80,7 +82,7 @@ class AdminPanelProvider extends PanelProvider
                     'sm' => 2,
                 ]),
 
-                
+
             ])
             ->databaseNotifications()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

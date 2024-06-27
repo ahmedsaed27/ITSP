@@ -26,7 +26,7 @@ use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Malzariey\FilamentDaterangepickerFilter\Fields\DateRangePicker;
 
 
-class VacationsResource extends Resource implements HasShieldPermissions
+class VacationsResource extends Resource
 {
     protected static ?string $model = Vacations::class;
 
@@ -39,18 +39,6 @@ class VacationsResource extends Resource implements HasShieldPermissions
         return static::getModel()::count();
     }
 
-
-    public static function getPermissionPrefixes(): array
-    {
-        return [
-            'view',
-            'view_any',
-            'create',
-            'update',
-            'delete',
-            'delete_any',
-        ];
-    }
 
     public static function form(Form $form): Form
     {
@@ -156,15 +144,6 @@ class VacationsResource extends Resource implements HasShieldPermissions
     public static function canDeleteAny(): bool
     {
         return false;
-    }
-
-
-
-    public static function canViewAny(): bool
-    {
-        $userType = auth()->user()->type;
-
-        return $userType == 0 || $userType == 2;
     }
 
 }

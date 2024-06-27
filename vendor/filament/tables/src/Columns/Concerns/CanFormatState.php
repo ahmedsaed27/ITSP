@@ -9,6 +9,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 
@@ -98,6 +99,56 @@ trait CanFormatState
         return $this;
     }
 
+    public function dateTooltip(?string $format = null, ?string $timezone = null): static
+    {
+        $format ??= Table::$defaultDateDisplayFormat;
+
+        $this->tooltip(static function (TextColumn $column, $state) use ($format, $timezone): ?string {
+            if (blank($state)) {
+                return null;
+            }
+
+            return Carbon::parse($state)
+                ->setTimezone($timezone ?? $column->getTimezone())
+                ->translatedFormat($format);
+        });
+
+        return $this;
+    }
+
+    public function dateTimeTooltip(?string $format = null, ?string $timezone = null): static
+    {
+        $format ??= Table::$defaultDateTimeDisplayFormat;
+
+        $this->dateTooltip($format, $timezone);
+
+        return $this;
+    }
+
+    public function timeTooltip(?string $format = null, ?string $timezone = null): static
+    {
+        $format ??= Table::$defaultTimeDisplayFormat;
+
+        $this->dateTooltip($format, $timezone);
+
+        return $this;
+    }
+
+    public function sinceTooltip(?string $timezone = null): static
+    {
+        $this->tooltip(static function (TextColumn $column, $state) use ($timezone): ?string {
+            if (blank($state)) {
+                return null;
+            }
+
+            return Carbon::parse($state)
+                ->setTimezone($timezone ?? $column->getTimezone())
+                ->diffForHumans();
+        });
+
+        return $this;
+    }
+
     public function money(string | Closure | null $currency = null, int $divideBy = 0, string | Closure | null $locale = null): static
     {
         $this->isMoney = true;
@@ -117,7 +168,7 @@ trait CanFormatState
                 $state /= $divideBy;
             }
 
-            return Number::currency($state, $currency, $column->evaluate($locale));
+            return Number::currency($state, $currency, $column->evaluate($locale) ?? config('app.locale'));
         });
 
         return $this;
@@ -136,6 +187,7 @@ trait CanFormatState
                 return $state;
             }
 
+            $decimalPlaces = $column->evaluate($decimalPlaces);
             $decimalSeparator = $column->evaluate($decimalSeparator);
             $thousandsSeparator = $column->evaluate($thousandsSeparator);
 
@@ -145,13 +197,13 @@ trait CanFormatState
             ) {
                 return number_format(
                     $state,
-                    $column->evaluate($decimalPlaces),
+                    $decimalPlaces,
                     $decimalSeparator === ArgumentValue::Default ? '.' : $decimalSeparator,
                     $thousandsSeparator === ArgumentValue::Default ? ',' : $thousandsSeparator,
                 );
             }
 
-            return Number::format($state, $decimalPlaces, $maxDecimalPlaces, locale: $column->evaluate($locale));
+            return Number::format($state, $decimalPlaces, $column->evaluate($maxDecimalPlaces), locale: $column->evaluate($locale) ?? config('app.locale'));
         });
 
         return $this;
@@ -227,6 +279,10 @@ trait CanFormatState
             'state' => $state,
         ]);
 
+        if ($isHtml) {
+            $state = Str::sanitizeHtml($state);
+        }
+
         if ($state instanceof Htmlable) {
             $isHtml = true;
             $state = $state->toHtml();
@@ -262,6 +318,8 @@ trait CanFormatState
         if (filled($prefix)) {
             if ($prefix instanceof Htmlable) {
                 $prefix = $prefix->toHtml();
+            } elseif ($isHtml) {
+                $prefix = e($prefix);
             }
 
             $state = $prefix . $state;
@@ -270,16 +328,14 @@ trait CanFormatState
         if (filled($suffix)) {
             if ($suffix instanceof Htmlable) {
                 $suffix = $suffix->toHtml();
+            } elseif ($isHtml) {
+                $suffix = e($suffix);
             }
 
             $state = $state . $suffix;
         }
 
-        if ($isHtml) {
-            return str($state)->sanitizeHtml()->toHtmlString();
-        }
-
-        return $state;
+        return $isHtml ? new HtmlString($state) : $state;
     }
 
     public function getCharacterLimit(): ?int

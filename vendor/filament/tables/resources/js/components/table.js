@@ -8,7 +8,14 @@ export default function table() {
 
         shouldCheckUniqueSelection: true,
 
+        lastCheckedRecord: null,
+
+        livewireId: null,
+
         init: function () {
+            this.livewireId =
+                this.$root.closest('[wire\\:id]').attributes['wire:id'].value
+
             this.$wire.$on('deselectAllTableRecords', () =>
                 this.deselectAllRecords(),
             )
@@ -23,6 +30,14 @@ export default function table() {
                 this.selectedRecords = [...new Set(this.selectedRecords)]
 
                 this.shouldCheckUniqueSelection = false
+            })
+
+            this.$nextTick(() => this.watchForCheckboxClicks())
+
+            Livewire.hook('element.init', ({ component }) => {
+                if (component.id === this.livewireId) {
+                    this.watchForCheckboxClicks()
+                }
             })
         },
 
@@ -156,6 +171,63 @@ export default function table() {
 
         resetCollapsedGroups: function () {
             this.collapsedGroups = []
+        },
+
+        watchForCheckboxClicks: function () {
+            let checkboxes =
+                this.$root?.getElementsByClassName('fi-ta-record-checkbox') ??
+                []
+
+            for (let checkbox of checkboxes) {
+                // Remove existing listener to avoid duplicates
+                checkbox.removeEventListener('click', this.handleCheckboxClick)
+
+                checkbox.addEventListener('click', (event) =>
+                    this.handleCheckboxClick(event, checkbox),
+                )
+            }
+        },
+
+        handleCheckboxClick: function (event, checkbox) {
+            if (!this.lastChecked) {
+                this.lastChecked = checkbox
+
+                return
+            }
+
+            if (event.shiftKey) {
+                let checkboxes = Array.from(
+                    this.$root?.getElementsByClassName(
+                        'fi-ta-record-checkbox',
+                    ) ?? [],
+                )
+
+                if (!checkboxes.includes(this.lastChecked)) {
+                    this.lastChecked = checkbox
+
+                    return
+                }
+
+                let start = checkboxes.indexOf(this.lastChecked)
+                let end = checkboxes.indexOf(checkbox)
+
+                let range = [start, end].sort((a, b) => a - b)
+                let values = []
+
+                for (let i = range[0]; i <= range[1]; i++) {
+                    checkboxes[i].checked = checkbox.checked
+
+                    values.push(checkboxes[i].value)
+                }
+
+                if (checkbox.checked) {
+                    this.selectRecords(values)
+                } else {
+                    this.deselectRecords(values)
+                }
+            }
+
+            this.lastChecked = checkbox
         },
     }
 }

@@ -74,8 +74,7 @@ final class DynamicSourceLocatorProvider implements ResetableInterface
         foreach ($this->directories as $directory) {
             $sourceLocators[] = $this->optimizedDirectorySourceLocatorFactory->createByDirectory($directory);
         }
-        $this->aggregateSourceLocator = new AggregateSourceLocator($sourceLocators);
-        return $this->aggregateSourceLocator;
+        return $this->aggregateSourceLocator = new AggregateSourceLocator($sourceLocators);
     }
     public function isPathsEmpty() : bool
     {

@@ -1,9 +1,11 @@
 import dayjs from 'dayjs/esm'
+import advancedFormat from 'dayjs/plugin/advancedFormat'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import localeData from 'dayjs/plugin/localeData'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 
+dayjs.extend(advancedFormat)
 dayjs.extend(customParseFormat)
 dayjs.extend(localeData)
 dayjs.extend(timezone)
@@ -501,6 +503,7 @@ const locales = {
     ms: require('dayjs/locale/ms'),
     my: require('dayjs/locale/my'),
     nl: require('dayjs/locale/nl'),
+    no: require('dayjs/locale/nb'),
     pl: require('dayjs/locale/pl'),
     pt_BR: require('dayjs/locale/pt-br'),
     pt_PT: require('dayjs/locale/pt'),

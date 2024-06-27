@@ -18,7 +18,7 @@ use PhpParser\Node\Stmt\Function_;
 use PHPStan\Analyser\Scope;
 use Rector\DeadCode\SideEffect\SideEffectNodeDetector;
 use Rector\NodeAnalyzer\VariableAnalyzer;
-use Rector\NodeTypeResolver\Node\AttributeKey;
+use Rector\NodeManipulator\StmtsManipulator;
 use Rector\Php\ReservedKeywordAnalyzer;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Rector\AbstractScopeAwareRector;
@@ -49,12 +49,18 @@ final class RemoveUnusedVariableAssignRector extends AbstractScopeAwareRector
      * @var \Rector\PhpParser\Node\BetterNodeFinder
      */
     private $betterNodeFinder;
-    public function __construct(ReservedKeywordAnalyzer $reservedKeywordAnalyzer, SideEffectNodeDetector $sideEffectNodeDetector, VariableAnalyzer $variableAnalyzer, BetterNodeFinder $betterNodeFinder)
+    /**
+     * @readonly
+     * @var \Rector\NodeManipulator\StmtsManipulator
+     */
+    private $stmtsManipulator;
+    public function __construct(ReservedKeywordAnalyzer $reservedKeywordAnalyzer, SideEffectNodeDetector $sideEffectNodeDetector, VariableAnalyzer $variableAnalyzer, BetterNodeFinder $betterNodeFinder, StmtsManipulator $stmtsManipulator)
     {
         $this->reservedKeywordAnalyzer = $reservedKeywordAnalyzer;
         $this->sideEffectNodeDetector = $sideEffectNodeDetector;
         $this->variableAnalyzer = $variableAnalyzer;
         $this->betterNodeFinder = $betterNodeFinder;
+        $this->stmtsManipulator = $stmtsManipulator;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -95,16 +101,13 @@ CODE_SAMPLE
             return null;
         }
         // we cannot be sure here
-        if ($this->containsCompactFuncCall($node)) {
-            return null;
-        }
-        if ($this->containsFileIncludes($node)) {
+        if ($this->shouldSkip($stmts)) {
             return null;
         }
         $assignedVariableNamesByStmtPosition = $this->resolvedAssignedVariablesByStmtPosition($stmts);
         $hasChanged = \false;
         foreach ($assignedVariableNamesByStmtPosition as $stmtPosition => $variableName) {
-            if ($this->isVariableUsedInFollowingStmts($node, $stmtPosition, $variableName)) {
+            if ($this->stmtsManipulator->isVariableUsedInNextStmt($stmts, $stmtPosition + 1, $variableName)) {
                 continue;
             }
             /** @var Expression<Assign> $currentStmt */
@@ -141,48 +144,19 @@ CODE_SAMPLE
         });
     }
     /**
-     * @param \PhpParser\Node\Stmt\ClassMethod|\PhpParser\Node\Stmt\Function_ $functionLike
+     * @param Stmt[] $stmts
      */
-    private function isVariableUsedInFollowingStmts($functionLike, int $assignStmtPosition, string $variableName) : bool
+    private function shouldSkip(array $stmts) : bool
     {
-        if ($functionLike->stmts === null) {
-            return \false;
-        }
-        foreach ($functionLike->stmts as $key => $stmt) {
-            // do not look yet
-            if ($key <= $assignStmtPosition) {
-                continue;
-            }
-            $stmtScope = $stmt->getAttribute(AttributeKey::SCOPE);
-            if (!$stmtScope instanceof Scope) {
-                continue;
-            }
-            $foundVariable = $this->betterNodeFinder->findVariableOfName($stmt, $variableName);
-            if ($foundVariable instanceof Variable) {
+        return (bool) $this->betterNodeFinder->findFirst($stmts, function (Node $node) : bool {
+            if ($node instanceof Include_) {
                 return \true;
             }
-        }
-        return \false;
-    }
-    /**
-     * @param \PhpParser\Node\Stmt\ClassMethod|\PhpParser\Node\Stmt\Function_ $functionLike
-     */
-    private function containsCompactFuncCall($functionLike) : bool
-    {
-        $compactFuncCall = $this->betterNodeFinder->findFirst($functionLike, function (Node $node) : bool {
             if (!$node instanceof FuncCall) {
                 return \false;
             }
             return $this->isName($node, 'compact');
         });
-        return $compactFuncCall instanceof FuncCall;
-    }
-    /**
-     * @param \PhpParser\Node\Stmt\ClassMethod|\PhpParser\Node\Stmt\Function_ $functionLike
-     */
-    private function containsFileIncludes($functionLike) : bool
-    {
-        return (bool) $this->betterNodeFinder->findInstancesOf($functionLike, [Include_::class]);
     }
     /**
      * @param array<int, Stmt> $stmts

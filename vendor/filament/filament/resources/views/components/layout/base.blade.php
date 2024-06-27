@@ -22,9 +22,13 @@
             <link rel="icon" href="{{ $favicon }}" />
         @endif
 
+        @php
+            $title = strip_tags(($livewire ?? null)?->getTitle() ?? '');
+            $brandName = strip_tags(filament()->getBrandName());
+        @endphp
+
         <title>
-            {{ filled($title = strip_tags(($livewire ?? null)?->getTitle() ?? '')) ? "{$title} - " : null }}
-            {{ strip_tags(filament()->getBrandName()) }}
+            {{ filled($title) ? "{$title} - " : null }} {{ $brandName }}
         </title>
 
         {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::STYLES_BEFORE, scopes: $livewire->getRenderHookScopes()) }}
@@ -66,32 +70,6 @@
         @stack('styles')
 
         {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::STYLES_AFTER, scopes: $livewire->getRenderHookScopes()) }}
-
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(() => {
-                    const activeSidebarItem = document.querySelector(
-                        '.fi-sidebar-item-active',
-                    )
-
-                    if (!activeSidebarItem) {
-                        return
-                    }
-
-                    const sidebarWrapper =
-                        document.querySelector('.fi-sidebar-nav')
-
-                    if (!sidebarWrapper) {
-                        return
-                    }
-
-                    sidebarWrapper.scrollTo(
-                        0,
-                        activeSidebarItem.offsetTop - window.innerHeight / 2,
-                    )
-                }, 0)
-            })
-        </script>
 
         @if (! filament()->hasDarkMode())
             <script>
@@ -138,7 +116,7 @@
 
         @filamentScripts(withCore: true)
 
-        @if (config('filament.broadcasting.echo'))
+        @if (filament()->hasBroadcasting() && config('filament.broadcasting.echo'))
             <script data-navigate-once>
                 window.Echo = new window.EchoFactory(@js(config('filament.broadcasting.echo')))
 

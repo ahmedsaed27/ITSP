@@ -7,7 +7,7 @@ use PhpParser\Node\FunctionLike;
 use PHPStan\PhpDocParser\Ast\Node;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
-use PHPStan\PhpDocParser\Ast\Type\UnionTypeNode;
+use PHPStan\Type\Type;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
 use Rector\Comments\NodeDocBlock\DocBlockUpdater;
 use Rector\DeadCode\PhpDoc\DeadParamTagValueNodeAnalyzer;
@@ -29,11 +29,11 @@ final class ParamTagRemover
         $this->deadParamTagValueNodeAnalyzer = $deadParamTagValueNodeAnalyzer;
         $this->docBlockUpdater = $docBlockUpdater;
     }
-    public function removeParamTagsIfUseless(PhpDocInfo $phpDocInfo, FunctionLike $functionLike) : bool
+    public function removeParamTagsIfUseless(PhpDocInfo $phpDocInfo, FunctionLike $functionLike, ?Type $type = null) : bool
     {
         $hasChanged = \false;
         $phpDocNodeTraverser = new PhpDocNodeTraverser();
-        $phpDocNodeTraverser->traverseWithCallable($phpDocInfo->getPhpDocNode(), '', function (Node $docNode) use($functionLike, &$hasChanged) : ?int {
+        $phpDocNodeTraverser->traverseWithCallable($phpDocInfo->getPhpDocNode(), '', function (Node $docNode) use($functionLike, &$hasChanged, $type, $phpDocInfo) : ?int {
             if (!$docNode instanceof PhpDocTagNode) {
                 return null;
             }
@@ -44,9 +44,11 @@ final class ParamTagRemover
             if ($docNode->name !== '@param') {
                 return null;
             }
-            // skip union types
-            if ($docNode->value->type instanceof UnionTypeNode) {
-                return null;
+            if ($type instanceof Type) {
+                $paramType = $phpDocInfo->getParamType($docNode->value->parameterName);
+                if (!$type->equals($paramType)) {
+                    return null;
+                }
             }
             if (!$this->deadParamTagValueNodeAnalyzer->isDead($docNode->value, $functionLike)) {
                 return null;

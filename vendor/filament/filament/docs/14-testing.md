@@ -4,7 +4,7 @@ title: Testing
 
 ## Overview
 
-All examples in this guide will be written using [Pest](https://pestphp.com). However, you can easily adapt this to a PHPUnit.
+All examples in this guide will be written using [Pest](https://pestphp.com). To use Pest's Livewire plugin for testing, you can follow the installation instructions in the Pest documentation on plugins: [Livewire plugin for Pest](https://pestphp.com/docs/plugins#livewire). However, you can easily adapt this to PHPUnit.
 
 Since all pages in the app are Livewire components, we're just using Livewire testing helpers everywhere. If you've never tested Livewire components before, please read [this guide](https://livewire.laravel.com/docs/testing) from the Livewire docs.
 
@@ -19,6 +19,18 @@ protected function setUp(): void
 
     $this->actingAs(User::factory()->create());
 }
+```
+
+### Testing multiple panels
+
+If you have multiple panels and you would like to test a non-default panel, you will need to tell Filament which panel you are testing. This can be done in the `setUp()` method of the test case, or you can do it at the start of a particular test. Filament usually does this in a middleware when you access the panel through a request, so if you're not making a request in your test like when testing a Livewire component, you need to set the current panel manually:
+
+```php
+use Filament\Facades\Filament;
+
+Filament::setCurrentPanel(
+    Filament::getPanel('app'), // Where `app` is the ID of the panel you want to test
+);
 ```
 
 ## Resources
@@ -252,7 +264,7 @@ it('can render page', function () {
 
 ##### Filling existing data
 
-To check that the form is filled with the correct data from the database, you may `assertSet()` that the data in the form matches that of the record:
+To check that the form is filled with the correct data from the database, you may `assertFormSet()` that the data in the form matches that of the record:
 
 ```php
 use function Pest\Livewire\livewire;

@@ -1,6 +1,6 @@
 <?php
 
-namespace RectorPrefix202402\Illuminate\Contracts\Auth;
+namespace RectorPrefix202406\Illuminate\Contracts\Auth;
 
 interface MustVerifyEmail
 {

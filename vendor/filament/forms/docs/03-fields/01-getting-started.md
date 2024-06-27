@@ -209,6 +209,15 @@ TextInput::make('categories')
     ->extraInputAttributes(['width' => 200])
 ```
 
+You can also pass extra HTML attributes to the field wrapper which surrounds the label, entry, and any other text:
+
+```php
+use Filament\Forms\Components\TextInput;
+
+TextInput::make('categories')
+    ->extraFieldWrapperAttributes(['class' => 'components-locked'])
+```
+
 ## Disabling a field
 
 You may disable a field to prevent it from being edited by the user:
@@ -308,7 +317,7 @@ TextInput::make('name')
 
 ## Global settings
 
-If you wish to change the default behaviour of a field globally, then you can call the static `configureUsing()` method inside a service provider's `boot()` method or a middleware. Pass a closure which is able to modify the component. For example, if you wish to make all [checkboxes `inline(false)`](checkbox#positioning-the-label-above), you can do it like so:
+If you wish to change the default behavior of a field globally, then you can call the static `configureUsing()` method inside a service provider's `boot()` method or a middleware. Pass a closure which is able to modify the component. For example, if you wish to make all [checkboxes `inline(false)`](checkbox#positioning-the-label-above), you can do it like so:
 
 ```php
 use Filament\Forms\Components\Checkbox;
@@ -318,7 +327,7 @@ Checkbox::configureUsing(function (Checkbox $checkbox): void {
 });
 ```
 
-Of course, you are still able to overwrite this behaviour on each field individually:
+Of course, you are still able to overwrite this behavior on each field individually:
 
 ```php
 use Filament\Forms\Components\Checkbox;

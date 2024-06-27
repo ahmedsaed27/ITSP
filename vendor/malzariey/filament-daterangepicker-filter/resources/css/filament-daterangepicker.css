@@ -22,11 +22,26 @@
     line-height: 1em;
 }
 
+.daterangepicker .applyBtn{
+    @apply text-primary-600 hover:text-primary-400 ;
+}
 .daterangepicker:before, .daterangepicker:after {
     position: absolute;
     display: inline-block;
     border-bottom-color: rgba(0, 0, 0, 0.2);
     content: '';
+}
+
+.daterangepicker .hourselect, .daterangepicker .minuteselect, .daterangepicker .secondselect, .daterangepicker .ampmselect {
+    @apply dark:bg-transparent;
+    @apply dark:border-gray-700;
+    @apply bg-white;
+}
+
+.daterangepicker .hourselect > option, .daterangepicker .minuteselect > option, .daterangepicker .secondselect > option, .daterangepicker .ampmselect > option {
+    @apply dark:bg-gray-800;
+    @apply dark:border-gray-700;
+    @apply bg-white;
 }
 
 .daterangepicker:before {
@@ -185,7 +200,7 @@
     color: inherit;
 }
 
-.next.available span , .prev.available span{
+.next.available span, .prev.available span{
     @apply dark:border-white !important;
 }
 
@@ -194,12 +209,7 @@
     color: #ccc;
 }
 
-.daterangepicker td.off, .daterangepicker td.off.in-range{
-    /*background-color: #fff;*/
-    @apply dark:bg-gray-800;
-    border-color: transparent;
-    color: #999;
-}
+
 
 .daterangepicker td.off.start-date, .daterangepicker td.off.end-date {
     /*background-color: #fff;*/
@@ -220,6 +230,24 @@
 .daterangepicker td.start-date {
     border-radius: 4px 0 0 4px;
 }
+
+.daterangepicker td.start-date.active {
+    @apply text-white bg-primary-500;
+}
+.daterangepicker td.in-range {
+    @apply bg-[#ebf4f8] dark:bg-white;
+}
+
+.daterangepicker td.end-date.active {
+    @apply bg-primary-500;
+}
+
+.daterangepicker td.off, .daterangepicker td.off.in-range,
+.daterangepicker td.start-date.active.off,
+.daterangepicker td.end-date.active.off{
+    @apply bg-transparent dark:bg-gray-800 text-[#999];
+}
+
 
 .daterangepicker td.end-date {
     border-radius: 0 4px 4px 0;

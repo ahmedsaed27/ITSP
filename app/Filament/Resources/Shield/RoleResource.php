@@ -18,23 +18,12 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
-class RoleResource extends Resource implements HasShieldPermissions
+class RoleResource extends Resource
 {
     protected static ?string $recordTitleAttribute = 'name';
 
     protected static $permissionsCollection;
 
-    public static function getPermissionPrefixes(): array
-    {
-        return [
-            'view',
-            'view_any',
-            'create',
-            'update',
-            'delete',
-            'delete_any',
-        ];
-    }
 
     public static function form(Form $form): Form
     {

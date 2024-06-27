@@ -22,6 +22,8 @@ class TwoFactorPage extends SimplePage
 
     protected static string $view = 'filament-breezy::filament.pages.two-factor';
 
+    protected bool $hasTopbar = false;
+
     public $usingRecoveryCode = false;
 
     public $code;
@@ -126,6 +128,11 @@ class TwoFactorPage extends SimplePage
             $this->addError('code', __('filament-breezy::default.profile.2fa.confirmation.invalid_code'));
 
             return null;
+        }
+
+        // If using a recovery code, unset it so it can only be used once
+        if ($this->usingRecoveryCode) {
+            filament('filament-breezy')->auth()->user()->destroyRecoveryCode($this->code);
         }
 
         // If it makes it to the bottom, we're going to set the session var and send them to the dashboard.

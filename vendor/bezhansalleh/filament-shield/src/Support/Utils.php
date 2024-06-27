@@ -149,6 +149,11 @@ class Utils
         return (string) config('filament-shield.generator.option', 'policies_and_permissions');
     }
 
+    public static function getGeneratorNamespace(): string
+    {
+        return (string) config('filament-shield.generator.namespace', 'Policies');
+    }
+
     public static function isGeneralExcludeEnabled(): bool
     {
         return (bool) config('filament-shield.exclude.enabled', true);
@@ -174,6 +179,11 @@ class Utils
         return config('filament-shield.exclude.pages');
     }
 
+    public static function getPolicyNamespace(): string
+    {
+        return (string) config('filament-shield.generator.policy_namespace', 'Policies');
+    }
+
     public static function getExcludedWidgets(): array
     {
         return config('filament-shield.exclude.widgets');
@@ -181,7 +191,7 @@ class Utils
 
     public static function isRolePolicyRegistered(): bool
     {
-        return (bool) config('filament-shield.register_role_policy', true);
+        return (bool) config('filament-shield.register_role_policy.enabled', true);
     }
 
     public static function doesResourceHaveCustomPermissions(string $resourceClass): bool
@@ -194,6 +204,11 @@ class Utils
         return config('filament-shield.shield_resource.show_model_path', true)
             ? get_class(new ($resourceFQCN::getModel())())
             : '';
+    }
+
+    public static function getResourceCluster(): ?string
+    {
+        return config('filament-shield.shield_resource.cluster', null);
     }
 
     public static function getResourcePermissionPrefixes(string $resourceFQCN): array

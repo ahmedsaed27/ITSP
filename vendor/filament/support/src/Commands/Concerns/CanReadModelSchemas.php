@@ -4,6 +4,7 @@ namespace Filament\Support\Commands\Concerns;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Schema\Builder;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use ReflectionClass;
@@ -20,7 +21,7 @@ trait CanReadModelSchemas
         return $model;
     }
 
-    protected function getModelSchema(string $model): Schema
+    protected function getModelSchema(string $model): Builder
     {
         return app($model)
             ->getConnection()
@@ -155,7 +156,7 @@ trait CanReadModelSchemas
 
         $driver = app($model)->getConnection()->getDriverName();
 
-        if ($driver === 'mysql') {
+        if (in_array($driver, ['mysql', 'mariadb'])) {
             if ($default === 'NULL'
             || preg_match("/^\(.*\)$/", $default) === 1
             || str_ends_with($default, '()')

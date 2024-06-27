@@ -22,7 +22,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class EmployeeReviewResource extends Resource implements HasShieldPermissions
+class EmployeeReviewResource extends Resource
 {
     protected static ?string $model = EmployeeReview::class;
 
@@ -35,17 +35,6 @@ class EmployeeReviewResource extends Resource implements HasShieldPermissions
         return static::getModel()::count();
     }
 
-    public static function getPermissionPrefixes(): array
-    {
-        return [
-            'view',
-            'view_any',
-            'create',
-            'update',
-            'delete',
-            'delete_any',
-        ];
-    }
 
     public static function form(Form $form): Form
     {
@@ -104,10 +93,4 @@ class EmployeeReviewResource extends Resource implements HasShieldPermissions
         ];
     }
 
-    public static function canViewAny(): bool
-    {
-        $userType = auth()->user()->type;
-
-        return $userType == 0 || $userType == 2;
-    }
 }

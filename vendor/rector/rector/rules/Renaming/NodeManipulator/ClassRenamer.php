@@ -76,6 +76,7 @@ final class ClassRenamer
     }
     /**
      * @param array<string, string> $oldToNewClasses
+     * @return ($node is FullyQualified ? FullyQualified : Node)
      */
     public function renameNode(Node $node, array $oldToNewClasses, ?Scope $scope) : ?Node
     {
@@ -128,6 +129,9 @@ final class ClassRenamer
      */
     private function refactorName(FullyQualified $fullyQualified, array $oldToNewClasses) : ?FullyQualified
     {
+        if ($fullyQualified->getAttribute(AttributeKey::IS_FUNCCALL_NAME) === \true) {
+            return null;
+        }
         $stringName = $fullyQualified->toString();
         $newName = $oldToNewClasses[$stringName] ?? null;
         if ($newName === null) {

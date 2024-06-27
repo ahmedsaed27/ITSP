@@ -23,6 +23,7 @@ use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\Type;
 use Rector\BetterPhpDocParser\Annotation\AnnotationNaming;
+use Rector\BetterPhpDocParser\PhpDoc\ArrayItemNode;
 use Rector\BetterPhpDocParser\PhpDoc\DoctrineAnnotationTagValueNode;
 use Rector\BetterPhpDocParser\PhpDoc\SpacelessPhpDocTagNode;
 use Rector\BetterPhpDocParser\PhpDocNodeFinder\PhpDocNodeByTypeFinder;
@@ -265,6 +266,20 @@ final class PhpDocInfo
         });
         return $hasChanged;
     }
+    public function removeByName(string $tagName) : bool
+    {
+        $tagName = '@' . \ltrim($tagName, '@');
+        $hasChanged = \false;
+        $phpDocNodeTraverser = new PhpDocNodeTraverser();
+        $phpDocNodeTraverser->traverseWithCallable($this->phpDocNode, '', static function (Node $node) use($tagName, &$hasChanged) : ?int {
+            if ($node instanceof PhpDocTagNode && $node->name === $tagName) {
+                $hasChanged = \true;
+                return PhpDocNodeTraverser::NODE_REMOVE;
+            }
+            return null;
+        });
+        return $hasChanged;
+    }
     public function addTagValueNode(PhpDocTagValueNode $phpDocTagValueNode) : void
     {
         if ($phpDocTagValueNode instanceof DoctrineAnnotationTagValueNode) {
@@ -329,20 +344,22 @@ final class PhpDocInfo
         return null;
     }
     /**
+     * @return string[]
+     */
+    public function getTemplateNames() : array
+    {
+        $templateNames = [];
+        foreach ($this->phpDocNode->getTemplateTagValues() as $templateTagValueNode) {
+            $templateNames[] = $templateTagValueNode->name;
+        }
+        return $templateNames;
+    }
+    /**
      * @return TemplateTagValueNode[]
      */
     public function getTemplateTagValueNodes() : array
     {
         return $this->phpDocNode->getTemplateTagValues();
-    }
-    /**
-     * @deprecated Change doc block and print directly in the node instead
-     * Should be handled by attributes of phpdoc node - if stard_and_end is missing in one of nodes, it has been changed
-     *
-     * @api
-     */
-    public function markAsChanged() : void
-    {
     }
     public function makeMultiLined() : void
     {
@@ -395,6 +412,26 @@ final class PhpDocInfo
                 return null;
             }
             $classNames[] = $node->constExpr->getAttribute(PhpDocAttributeKey::RESOLVED_CLASS);
+            return $node;
+        });
+        return $classNames;
+    }
+    /**
+     * @return string[]
+     */
+    public function getArrayItemNodeClassNames() : array
+    {
+        $phpDocNodeTraverser = new PhpDocNodeTraverser();
+        $classNames = [];
+        $phpDocNodeTraverser->traverseWithCallable($this->phpDocNode, '', static function (Node $node) use(&$classNames) : ?ArrayItemNode {
+            if (!$node instanceof ArrayItemNode) {
+                return null;
+            }
+            $resolvedClass = $node->getAttribute(PhpDocAttributeKey::RESOLVED_CLASS);
+            if ($resolvedClass === null) {
+                return null;
+            }
+            $classNames[] = $resolvedClass;
             return $node;
         });
         return $classNames;

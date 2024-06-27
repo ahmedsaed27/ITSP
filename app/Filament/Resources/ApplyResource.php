@@ -43,7 +43,7 @@ use Illuminate\Database\Eloquent\Model;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 
 
-class ApplyResource extends Resource implements HasShieldPermissions
+class ApplyResource extends Resource
 {
     protected static ?string $model = Apply::class;
 
@@ -59,17 +59,6 @@ class ApplyResource extends Resource implements HasShieldPermissions
         return static::getModel()::count();
     }
 
-    public static function getPermissionPrefixes(): array
-    {
-        return [
-            'view',
-            'view_any',
-            'create',
-            'update',
-            'delete',
-            'delete_any',
-        ];
-    }
 
     public static function form(Form $form): Form
     {
@@ -150,8 +139,8 @@ class ApplyResource extends Resource implements HasShieldPermissions
                         'status' => $data['status'],
                         'note' => 'test',
                     ]);
-                   
-                     
+
+
                 })->hidden(function(Model $record){
                     return $record->review !== null || $record->status !== 0;
                 }),
@@ -268,10 +257,4 @@ class ApplyResource extends Resource implements HasShieldPermissions
         ];
     }
 
-    public static function canViewAny(): bool
-    {
-        $userType = auth()->user()->type;
-
-        return $userType == 0 || $userType == 2;
-    }
 }

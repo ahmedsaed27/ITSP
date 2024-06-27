@@ -6,8 +6,8 @@ namespace Rector\Configuration;
 use Rector\ChangesReporting\Output\ConsoleOutputFormatter;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
 use Rector\ValueObject\Configuration;
-use RectorPrefix202402\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202402\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202406\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202406\Symfony\Component\Console\Style\SymfonyStyle;
 /**
  * @see \Rector\Tests\Configuration\ConfigurationFactoryTest
  */
@@ -47,6 +47,10 @@ final class ConfigurationFactory
         $parallelPort = (string) $input->getOption(\Rector\Configuration\Option::PARALLEL_PORT);
         $parallelIdentifier = (string) $input->getOption(\Rector\Configuration\Option::PARALLEL_IDENTIFIER);
         $isDebug = (bool) $input->getOption(\Rector\Configuration\Option::DEBUG);
+        // using debug disables parallel, so emitting exception is straightforward and easier to debug
+        if ($isDebug) {
+            $isParallel = \false;
+        }
         $memoryLimit = $this->resolveMemoryLimit($input);
         return new Configuration($isDryRun, $showProgressBar, $shouldClearCache, $outputFormat, $fileExtensions, $paths, $showDiffs, $parallelPort, $parallelIdentifier, $isParallel, $memoryLimit, $isDebug);
     }

@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Application;
 
-use RectorPrefix202402\Nette\Utils\FileSystem as UtilsFileSystem;
+use RectorPrefix202406\Nette\Utils\FileSystem as UtilsFileSystem;
 use Rector\Caching\Detector\ChangedFilesDetector;
 use Rector\Configuration\Option;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
@@ -19,11 +19,11 @@ use Rector\ValueObject\FileProcessResult;
 use Rector\ValueObject\ProcessResult;
 use Rector\ValueObject\Reporting\FileDiff;
 use Rector\ValueObjectFactory\Application\FileFactory;
-use RectorPrefix202402\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202402\Symfony\Component\Console\Style\SymfonyStyle;
-use RectorPrefix202402\Symplify\EasyParallel\CpuCoreCountProvider;
-use RectorPrefix202402\Symplify\EasyParallel\Exception\ParallelShouldNotHappenException;
-use RectorPrefix202402\Symplify\EasyParallel\ScheduleFactory;
+use RectorPrefix202406\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202406\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202406\Symplify\EasyParallel\CpuCoreCountProvider;
+use RectorPrefix202406\Symplify\EasyParallel\Exception\ParallelShouldNotHappenException;
+use RectorPrefix202406\Symplify\EasyParallel\ScheduleFactory;
 use Throwable;
 final class ApplicationFileProcessor
 {
@@ -101,10 +101,8 @@ final class ApplicationFileProcessor
     public function run(Configuration $configuration, InputInterface $input) : ProcessResult
     {
         $filePaths = $this->fileFactory->findFilesInPaths($configuration->getPaths(), $configuration);
-        if ($this->vendorMissAnalyseGuard->isVendorAnalyzed($filePaths)) {
-            $this->symfonyStyle->warning(\sprintf('Rector has detected a "/vendor" directory in your configured paths. If this is Composer\'s vendor directory, this is not necessary as it will be autoloaded. Scanning the Composer vendor directory will cause Rector to run much slower and possibly with errors.%sRemove "/vendor" from Rector paths and run again.', \PHP_EOL . \PHP_EOL));
-            \sleep(3);
-        }
+        $this->verifyVendor($filePaths);
+        $this->verifySkippedRules();
         // no files found
         if ($filePaths === []) {
             return new ProcessResult([], []);
@@ -133,7 +131,7 @@ final class ApplicationFileProcessor
             $preFileCallback = null;
         }
         if ($configuration->isParallel()) {
-            $processResult = $this->runParallel($filePaths, $configuration, $input, $postFileCallback);
+            $processResult = $this->runParallel($filePaths, $input, $postFileCallback);
         } else {
             $processResult = $this->processFiles($filePaths, $configuration, $preFileCallback, $postFileCallback);
         }
@@ -177,6 +175,28 @@ final class ApplicationFileProcessor
             }
         }
         return new ProcessResult($systemErrors, $fileDiffs);
+    }
+    /**
+     * @param string[] $filePaths
+     */
+    private function verifyVendor(array $filePaths) : void
+    {
+        if ($this->vendorMissAnalyseGuard->isVendorAnalyzed($filePaths)) {
+            $this->symfonyStyle->warning(\sprintf('Rector has detected a "/vendor" directory in your configured paths. If this is Composer\'s vendor directory, this is not necessary as it will be autoloaded. Scanning the Composer vendor directory will cause Rector to run much slower and possibly with errors.%sRemove "/vendor" from Rector paths and run again.', \PHP_EOL . \PHP_EOL));
+            \sleep(3);
+        }
+    }
+    private function verifySkippedRules() : void
+    {
+        $registeredRules = SimpleParameterProvider::provideArrayParameter(Option::REGISTERED_RECTOR_RULES);
+        $skippedRules = SimpleParameterProvider::provideArrayParameter(Option::SKIPPED_RECTOR_RULES);
+        $neverRegisteredSkippedRules = \array_unique(\array_diff($skippedRules, $registeredRules));
+        if ($neverRegisteredSkippedRules !== []) {
+            $total = \count($neverRegisteredSkippedRules);
+            $reportNeverRegisteredRules = \implode(\PHP_EOL, $neverRegisteredSkippedRules);
+            $this->symfonyStyle->warning(\sprintf('[Note] The following rule%s %s ignored, but %s actually never registered. You can remove %s from the withSkip([...]) method.%s%s', $total > 1 ? 's' : '', $total > 1 ? 'are' : 'is', $total > 1 ? 'they are' : 'it is', $total > 1 ? 'them' : 'it', \PHP_EOL, \PHP_EOL . $reportNeverRegisteredRules));
+            \sleep(3);
+        }
     }
     private function processFile(File $file, Configuration $configuration) : FileProcessResult
     {
@@ -226,7 +246,7 @@ final class ApplicationFileProcessor
      * @param string[] $filePaths
      * @param callable(int $stepCount): void $postFileCallback
      */
-    private function runParallel(array $filePaths, Configuration $configuration, InputInterface $input, callable $postFileCallback) : ProcessResult
+    private function runParallel(array $filePaths, InputInterface $input, callable $postFileCallback) : ProcessResult
     {
         $schedule = $this->scheduleFactory->create($this->cpuCoreCountProvider->provide(), SimpleParameterProvider::provideIntParameter(Option::PARALLEL_JOB_SIZE), SimpleParameterProvider::provideIntParameter(Option::PARALLEL_MAX_NUMBER_OF_PROCESSES), $filePaths);
         $mainScript = $this->resolveCalledRectorBinary();
@@ -234,7 +254,7 @@ final class ApplicationFileProcessor
             throw new ParallelShouldNotHappenException('[parallel] Main script was not found');
         }
         // mimics see https://github.com/phpstan/phpstan-src/commit/9124c66dcc55a222e21b1717ba5f60771f7dda92#diff-387b8f04e0db7a06678eb52ce0c0d0aff73e0d7d8fc5df834d0a5fbec198e5daR139
-        return $this->parallelFileProcessor->process($schedule, $mainScript, $postFileCallback, $input, $configuration);
+        return $this->parallelFileProcessor->process($schedule, $mainScript, $postFileCallback, $input);
     }
     /**
      * Path to called "rector" binary file, e.g. "vendor/bin/rector" returns "vendor/bin/rector" This is needed to re-call the

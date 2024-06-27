@@ -1,6 +1,5 @@
 @php
-    $name = uniqid();
-    
+    $name = $getId();
     $isPrefixInline = $isPrefixInline();
     $isSuffixInline = $isSuffixInline();
     $prefixActions = $getPrefixActions();
@@ -23,17 +22,22 @@
                 state: @entangle($statePath),
                 name: @js($name),
                 alwaysShowCalendars: @js($isAlwaysShowCalendar()),
-                autoApply: @js($getAutoApplyOption()),
-                linkedCalendars: @js($getLinkedCalendarsOption()),
+                autoApply: @js($getAutoApply()),
+                linkedCalendars: @js($getLinkedCalendars()),
+                singleCalendar: @js($getSingleCalendar()),
                 autoUpdateInput: false,
                 startDate: @js($getStartDate()),
                 endDate: @js($getEndDate()),
                 maxDate: @js($getMaxDate()),
                 minDate: @js($getMinDate()),
-                timePicker: @js($getTimePickerOption()),
-                timePickerIncrement: @js($getTimePickerIncrementOption()),
+                timePicker: @js($getTimePicker()),
+                timePicker24: @js($getTimePicker24()),
+                timePickerSecond: @js($getTimePickerSecond()),
+                timePickerIncrement: @js($getTimePickerIncrement()),
                 displayFormat: @js($getDisplayFormat()),
                 disableCustomRange: @js($getDisableCustomRange()),
+                opens: '{{$getOpens()}}',
+                drops: '{{$getDrops()}}',
                 applyLabel: '{!! __('filament-daterangepicker-filter::message.apply') !!}',
                 cancelLabel: '{!! __('filament-daterangepicker-filter::message.cancel') !!}',
                 fromLabel: '{!! __('filament-daterangepicker-filter::message.from') !!}',
@@ -60,8 +64,11 @@
                 saturday: '{!! __('filament-daterangepicker-filter::message.sa') !!}',
                 firstDay: @js($getFirstDayOfWeek()),
                 ranges: @js($getRanges()),
+                maxSpan: @js($getMaxSpan()),
+                disableRange : @js($getDisableRanges()),
                 separator: @js($getSeparator()),
                 useRangeLabels: @js($getUseRangeLabels()),
+                disabledDates: @js($getDisabledDates()),
                 handleValueChangeUsing: (value, name) => {
                     if (name == '{{ $name }}') {
                         @this.set('{!! $statePath !!}', value);
@@ -71,6 +78,7 @@
             id="date-range-picker-{{ $name }}"
             wire:key="date-range-picker-{{ $name }}"
             x-on:keydown.esc="isOpen() && $event.stopPropagation()"
+
             {{ $attributes->merge($getExtraAttributes())->class(['filament-forms-date-time-picker-component relative']) }}
             {{ $getExtraAlpineAttributeBag() }}
         >

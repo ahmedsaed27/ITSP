@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\CodingStyle\Application;
 
-use RectorPrefix202402\Nette\Utils\Strings;
+use RectorPrefix202406\Nette\Utils\Strings;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Declare_;
@@ -113,7 +113,7 @@ final class UseImportsAdder
             $comments = (array) $stmts[$indexStmt]->getAttribute(AttributeKey::COMMENTS);
             if ($comments !== []) {
                 $newUses[0]->setAttribute(AttributeKey::COMMENTS, $stmts[$indexStmt]->getAttribute(AttributeKey::COMMENTS));
-                $stmts[$indexStmt]->setAttribute(AttributeKey::COMMENTS, null);
+                $stmts[$indexStmt]->setAttribute(AttributeKey::COMMENTS, []);
             }
         }
     }

@@ -56,7 +56,7 @@
         this.alwaysShowCalendars = false;
         this.isVisible = false;
         this.ranges = {};
-        this.handleApplyUsing = null;
+        // this.handleApplyUsing = null;
         this.name = null;
         this.opens = 'right';
         if (this.element.hasClass('pull-right'))
@@ -67,8 +67,8 @@
             this.drops = 'up';
 
         this.buttonClasses = 'btn btn-sm';
-        this.applyButtonClasses = 'filament-link inline-flex items-center justify-center gap-0.5 font-medium outline-none hover:underline focus:underline text-sm text-primary-600 hover:text-primary-500 dark:text-primary-500 dark:hover:text-primary-400';
-        this.cancelButtonClasses = 'filament-link inline-flex items-center justify-center gap-0.5 font-medium outline-none hover:underline focus:underline text-sm text-gray-600 hover:text-gray-500 dark:text-white dark:hover:text-white';
+        this.applyButtonClasses = 'filament-link inline-flex items-center justify-center gap-0.5 font-medium outline-none hover:underline focus:underline text-sm';
+        this.cancelButtonClasses = 'filament-link inline-flex items-center justify-center gap-0.5 font-medium outline-none hover:underline focus:underline text-sm text-gray-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400';
 
         this.locale = {
             direction: 'ltr',
@@ -120,7 +120,7 @@
 
         this.parentEl = (options.parentEl && $(options.parentEl).length) ? $(options.parentEl) : $(this.parentEl);
         this.container = $(options.template).appendTo(this.parentEl);
-        this.handleApplyUsing = options.handleApplyUsing;
+        // this.handleApplyUsing = options.handleApplyUsing;
         this.name = options.name;
         //
         // handle all the possible options overriding defaults
@@ -816,20 +816,15 @@
 
                     //highlight the currently selected start date
                     if (calendar[row][col].format('YYYY-MM-DD') == this.startDate.format('YYYY-MM-DD'))
-                        classes.push('active', 'start-date','text-white','bg-primary-500','dark:bg-primary-500','dark:text-white');
+                        classes.push('active', 'start-date');
+
+                    //highlight the currently selected end date
+                    if (this.endDate != null && calendar[row][col].format('YYYY-MM-DD') == this.endDate.format('YYYY-MM-DD'))
+                        classes.push('active', 'end-date');
 
                     //highlight dates in-between the selected dates
                     if (this.endDate != null && calendar[row][col] > this.startDate && calendar[row][col] < this.endDate)
-                        classes.push('in-range','bg-[#ebf4f8]' ,'dark:bg-white');
-                    //highlight the currently selected end date
-                    if (this.endDate != null && calendar[row][col].format('YYYY-MM-DD') == this.endDate.format('YYYY-MM-DD')) {
-                        classes.push('active', 'end-date', 'bg-primary-500');
-                        const index = classes.indexOf('in-range');
-                        if (index !== -1) {
-                            classes.splice(index, 1);
-                        }
-                    }
-
+                        classes.push('in-range');
 
                     //apply custom classes for this date
                     var isCustom = this.isCustomDate(calendar[row][col]);
@@ -1419,7 +1414,7 @@
         clickApply: function(e) {
             this.hide();
             this.element.trigger('apply.daterangepicker', this);
-            this.handleApplyUsing(this.startDate.format(this.locale.format) + this.locale.separator + this.endDate.format(this.locale.format), this.name)
+            // this.handleApplyUsing(this.startDate.format(this.locale.format) + this.locale.separator + this.endDate.format(this.locale.format), this.name)
         },
 
         clickCancel: function(e) {

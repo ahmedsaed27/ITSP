@@ -22,7 +22,7 @@
                             </div>
                         </div>
                         <div class="flex flex-col text-xs text-gray-500 justify-end">
-                            @if (static::getResource()::canRestore($record))
+                            @if ($this->canRestoreActivity())
                                 <x-filament::button
                                     tag="button"
                                     icon="heroicon-o-arrow-path-rounded-square"
@@ -63,14 +63,14 @@
                                 <x-filament-tables::cell width="20%" class="px-4 py-2 align-top sm:first-of-type:ps-6 sm:last-of-type:pe-6">
                                     {{ $this->getFieldLabel($field) }}
                                 </x-filament-tables::cell>
-                                <x-filament-tables::cell width="40%" class="px-4 py-2 align-top break-all !whitespace-normal">
+                                <x-filament-tables::cell width="40%" class="px-4 py-2 align-top break-all whitespace-normal">
                                     @if(is_array($oldValue))
                                         <pre class="text-xs text-gray-500">{{ json_encode($oldValue, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
                                     @else
                                         {{ $oldValue }}
                                     @endif
                                 </x-filament-tables::cell>
-                                <x-filament-tables::cell width="40%" class="px-4 py-2 align-top break-all !whitespace-normal">
+                                <x-filament-tables::cell width="40%" class="px-4 py-2 align-top break-all whitespace-normal">
                                     @if(is_array($newValue))
                                         <pre class="text-xs text-gray-500">{{ json_encode($newValue, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
                                     @else

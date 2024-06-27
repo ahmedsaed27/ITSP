@@ -89,6 +89,7 @@ CODE_SAMPLE
         }
         \end($node->stmts);
         $totalKeys = \key($node->stmts);
+        \reset($node->stmts);
         for ($key = $jumpToKey; $key < $totalKeys; ++$key) {
             if (!isset($node->stmts[$key], $node->stmts[$key + 1])) {
                 break;
@@ -122,7 +123,7 @@ CODE_SAMPLE
     }
     /**
      * @param int|float $rangeLine
-     * @return int|float
+     * @return float|int
      */
     private function resolveRangeLineFromComment($rangeLine, int $line, int $endLine, Stmt $nextStmt)
     {

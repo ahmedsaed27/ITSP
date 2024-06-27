@@ -48,20 +48,21 @@ final class ClassMethodReturnTypeOverrideGuard
         if ($this->magicClassMethodAnalyzer->isUnsafeOverridden($classMethod)) {
             return \true;
         }
+        // except magic check on above, early allow add return type on private method
+        if ($classMethod->isPrivate()) {
+            return \false;
+        }
         $classReflection = $this->reflectionResolver->resolveClassReflection($classMethod);
         if (!$classReflection instanceof ClassReflection) {
             return \true;
         }
-        if ($classMethod->isAbstract()) {
+        if ($classReflection->isAbstract()) {
             return \true;
         }
         if ($classReflection->isInterface()) {
             return \true;
         }
-        if (!$this->isReturnTypeChangeAllowed($classMethod, $scope)) {
-            return \true;
-        }
-        return $classMethod->isFinal();
+        return !$this->isReturnTypeChangeAllowed($classMethod, $scope);
     }
     private function isReturnTypeChangeAllowed(ClassMethod $classMethod, Scope $scope) : bool
     {

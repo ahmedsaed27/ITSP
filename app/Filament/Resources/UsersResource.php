@@ -20,7 +20,7 @@ use Filament\Infolists\Components\ImageEntry;
 use App\Filament\Resources\UsersResource\Pages;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 
-class UsersResource extends Resource implements HasShieldPermissions
+class UsersResource extends Resource
 {
     protected static ?string $model = User::class;
 
@@ -46,18 +46,6 @@ class UsersResource extends Resource implements HasShieldPermissions
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Start;
 
 
-    public static function getPermissionPrefixes(): array
-    {
-        return [
-            'view',
-            'view_any',
-            'create',
-            'update',
-            'delete',
-            'delete_any',
-        ];
-    }
-
     public static function form(Form $form): Form
     {
         return $form
@@ -74,7 +62,7 @@ class UsersResource extends Resource implements HasShieldPermissions
                 TextColumn::make('id')->label('#')->searchable(),
                 TextColumn::make('name')->searchable(),
                 TextColumn::make('email')->copyable()->searchable()->badge(),
-             
+
                 TextColumn::make('roleNames')
                 ->label('Roles')
                 ->badge()
@@ -211,10 +199,4 @@ class UsersResource extends Resource implements HasShieldPermissions
         ];
     }
 
-    public static function canViewAny(): bool
-    {
-        $userType = auth()->user()->type;
-
-        return $userType == 0 || $userType == 2;
-    }
 }

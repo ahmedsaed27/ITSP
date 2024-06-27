@@ -28,7 +28,11 @@ class MySql extends DbDumper
 
     protected string $setGtidPurged = 'AUTO';
 
+    protected bool $skipAutoIncrement = false;
+
     protected bool $createTables = true;
+
+    protected bool $includeData = true;
 
     /** @var false|resource */
     private $tempFileHandle;
@@ -129,6 +133,20 @@ class MySql extends DbDumper
         return $this;
     }
 
+    public function skipAutoIncrement(): self
+    {
+        $this->skipAutoIncrement = true;
+
+        return $this;
+    }
+
+    public function dontSkipAutoIncrement(): self
+    {
+        $this->skipAutoIncrement = false;
+
+        return $this;
+    }
+
     public function dumpToFile(string $dumpFile): void
     {
         $this->guardAgainstIncompleteCredentials();
@@ -165,6 +183,13 @@ class MySql extends DbDumper
         return $this;
     }
 
+    public function doNotDumpData(): self
+    {
+        $this->includeData = false;
+
+        return $this;
+    }
+
     public function getDumpCommand(string $dumpFile, string $temporaryCredentialsFile): string
     {
         $quote = $this->determineQuote();
@@ -176,6 +201,10 @@ class MySql extends DbDumper
 
         if (! $this->createTables) {
             $command[] = '--no-create-info';
+        }
+
+        if (! $this->includeData) {
+            $command[] = '--no-data';
         }
 
         if ($this->skipComments) {
@@ -233,7 +262,15 @@ class MySql extends DbDumper
             $command[] = $extraOptionAfterDbName;
         }
 
-        return $this->echoToFile(implode(' ', $command), $dumpFile);
+        $finalDumpCommand = implode(' ', $command);
+
+        if ($this->skipAutoIncrement) {
+            $sedCommand = "sed 's/ AUTO_INCREMENT=[0-9]*\b//'";
+            $finalDumpCommand .= " | {$sedCommand}";
+        }
+
+        return $this->echoToFile($finalDumpCommand, $dumpFile);
+
     }
 
     public function getContentsOfCredentialsFile(): string

@@ -18,7 +18,7 @@ use Rector\PhpParser\Node\CustomNode\FileWithoutNamespace;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202402\Webmozart\Assert\Assert;
+use RectorPrefix202406\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Transform\Rector\FileWithoutNamespace\RectorConfigBuilderRector\RectorConfigBuilderRectorTest
  */
@@ -74,6 +74,9 @@ CODE_SAMPLE
             $rules = new Array_();
             $paths = new Array_();
             $skips = new Array_();
+            $autoloadPaths = new Array_();
+            $bootstrapFiles = new Array_();
+            $sets = new Array_();
             foreach ($stmts as $rectorConfigStmt) {
                 // complex stmts should be skipped, eg: with if else
                 if (!$rectorConfigStmt instanceof Expression) {
@@ -91,26 +94,68 @@ CODE_SAMPLE
                     return null;
                 }
                 $args = $rectorConfigStmt->expr->getArgs();
-                $value = $args[0]->value;
                 $name = $this->getName($rectorConfigStmt->expr->name);
+                if ($name === 'disableParallel') {
+                    $newExpr = $this->nodeFactory->createMethodCall($newExpr, 'withoutParallel');
+                    $hasChanged = \true;
+                    continue;
+                }
+                $value = $args[0]->value;
                 if ($name === 'rule') {
                     Assert::isAOf($rules, Array_::class);
-                    $rules->items[] = new ArrayItem($rectorConfigStmt->expr->getArgs()[0]->value);
-                } elseif ($name === 'rules') {
+                    $rules->items[] = new ArrayItem($value);
+                    continue;
+                }
+                if ($name === 'rules') {
                     if ($value instanceof Array_) {
                         Assert::isAOf($rules, Array_::class);
                         $rules->items = \array_merge($rules->items, $value->items);
                     } else {
                         $rules = $value;
                     }
-                } elseif ($name === 'paths') {
-                    $paths = $value;
-                } elseif ($name === 'skip') {
-                    $skips = $value;
-                } else {
-                    // implementing method by method
-                    return null;
+                    continue;
                 }
+                if ($name === 'paths') {
+                    $paths = $value;
+                    continue;
+                }
+                if ($name === 'skip') {
+                    $skips = $value;
+                    continue;
+                }
+                if ($name === 'autoloadPaths') {
+                    Assert::isAOf($value, Array_::class);
+                    $autoloadPaths = $value;
+                    continue;
+                }
+                if ($name === 'bootstrapFiles') {
+                    Assert::isAOf($value, Array_::class);
+                    $bootstrapFiles = $value;
+                    continue;
+                }
+                if ($name === 'ruleWithConfiguration') {
+                    $newExpr = $this->nodeFactory->createMethodCall($newExpr, 'withConfiguredRule', [$value, $args[1]->value]);
+                    $hasChanged = \true;
+                    continue;
+                }
+                if ($name === 'sets') {
+                    Assert::isAOf($value, Array_::class);
+                    $sets->items = \array_merge($sets->items, $value->items);
+                    continue;
+                }
+                if ($name === 'fileExtensions') {
+                    Assert::isAOf($value, Array_::class);
+                    $newExpr = $this->nodeFactory->createMethodCall($newExpr, 'withFileExtensions', [$value]);
+                    $hasChanged = \true;
+                    continue;
+                }
+                if ($name === 'phpVersion') {
+                    $newExpr = $this->nodeFactory->createMethodCall($newExpr, 'withPhpVersion', [$value]);
+                    $hasChanged = \true;
+                    continue;
+                }
+                // implementing method by method
+                return null;
             }
             if (!$paths instanceof Array_ || $paths->items !== []) {
                 $newExpr = $this->nodeFactory->createMethodCall($newExpr, 'withPaths', [$paths]);
@@ -122,6 +167,18 @@ CODE_SAMPLE
             }
             if (!$rules instanceof Array_ || $rules->items !== []) {
                 $newExpr = $this->nodeFactory->createMethodCall($newExpr, 'withRules', [$rules]);
+                $hasChanged = \true;
+            }
+            if ($autoloadPaths->items !== []) {
+                $newExpr = $this->nodeFactory->createMethodCall($newExpr, 'withAutoloadPaths', [$autoloadPaths]);
+                $hasChanged = \true;
+            }
+            if ($bootstrapFiles->items !== []) {
+                $newExpr = $this->nodeFactory->createMethodCall($newExpr, 'withBootstrapFiles', [$bootstrapFiles]);
+                $hasChanged = \true;
+            }
+            if ($sets->items !== []) {
+                $newExpr = $this->nodeFactory->createMethodCall($newExpr, 'withSets', [$sets]);
                 $hasChanged = \true;
             }
             if ($hasChanged) {

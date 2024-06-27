@@ -8,7 +8,6 @@ use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ArrayDimFetch;
 use PhpParser\Node\Expr\BinaryOp\Coalesce;
 use PhpParser\Node\Expr\ClassConstFetch;
-use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\NullsafeMethodCall;
@@ -18,7 +17,6 @@ use PhpParser\Node\Name;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\NullableType;
 use PhpParser\Node\Scalar\String_;
-use PhpParser\Node\Stmt\Property;
 use PhpParser\Node\UnionType as NodeUnionType;
 use PHPStan\Analyser\Scope;
 use PHPStan\Broker\ClassAutoloadingException;
@@ -145,13 +143,10 @@ final class NodeTypeResolver
     }
     public function getType(Node $node) : Type
     {
-        if ($node instanceof Property && $node->type instanceof Node) {
-            return $this->getType($node->type);
+        if ($node instanceof Name && $node->hasAttribute(AttributeKey::NAMESPACED_NAME)) {
+            return $this->getType(new FullyQualified($node->getAttribute(AttributeKey::NAMESPACED_NAME)));
         }
         if ($node instanceof NullableType) {
-            if ($node->type instanceof Name && $node->type->hasAttribute(AttributeKey::NAMESPACED_NAME)) {
-                $node->type = new FullyQualified($node->type->getAttribute(AttributeKey::NAMESPACED_NAME));
-            }
             $type = $this->getType($node->type);
             if (!$type instanceof MixedType) {
                 return new UnionType([$type, new NullType()]);
@@ -182,12 +177,6 @@ final class NodeTypeResolver
         }
         $scope = $node->getAttribute(AttributeKey::SCOPE);
         if (!$scope instanceof Scope) {
-            if ($node instanceof ConstFetch) {
-                $name = $node->name->toString();
-                if (\strtolower($name) === 'null') {
-                    return new NullType();
-                }
-            }
             return new MixedType();
         }
         if ($node instanceof NodeUnionType) {
@@ -332,11 +321,11 @@ final class NodeTypeResolver
             return $type;
         }
         $optionalKeys = $variableType->getOptionalKeys();
-        foreach ($variableType->getKeyTypes() as $key => $type) {
-            if (!$type instanceof ConstantStringType) {
+        foreach ($variableType->getKeyTypes() as $key => $keyType) {
+            if (!$keyType instanceof ConstantStringType) {
                 continue;
             }
-            if ($type->getValue() !== $arrayDimFetch->dim->value) {
+            if ($keyType->getValue() !== $arrayDimFetch->dim->value) {
                 continue;
             }
             if (!\in_array($key, $optionalKeys, \true)) {

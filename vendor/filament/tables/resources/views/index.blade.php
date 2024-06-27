@@ -37,15 +37,17 @@
         fn (\Filament\Tables\Actions\BulkAction | \Filament\Tables\Actions\ActionGroup $action): bool => $action->isVisible(),
     );
     $groups = $getGroups();
-    $areGroupingSettingsVisible = count($groups) && (! $areGroupingSettingsHidden());
     $description = $getDescription();
     $isGroupsOnly = $isGroupsOnly() && $group;
     $isReorderable = $isReorderable();
     $isReordering = $isReordering();
+    $areGroupingSettingsVisible = (! $isReordering) && count($groups) && (! $areGroupingSettingsHidden());
+    $isGroupingDirectionSettingHidden = $isGroupingDirectionSettingHidden();
     $isColumnSearchVisible = $isSearchableByColumn();
     $isGlobalSearchVisible = $isSearchable();
     $isSearchOnBlur = $isSearchOnBlur();
     $isSelectionEnabled = $isSelectionEnabled() && (! $isGroupsOnly);
+    $selectsCurrentPageOnly = $selectsCurrentPageOnly();
     $recordCheckboxPosition = $getRecordCheckboxPosition();
     $isStriped = $isStriped();
     $isLoaded = $isLoaded();
@@ -66,6 +68,7 @@
     $columnsCount = count($columns);
     $reorderRecordsTriggerAction = $getReorderRecordsTriggerAction($isReordering);
     $toggleColumnsTriggerAction = $getToggleColumnsTriggerAction();
+    $page = $this->getTablePage();
 
     if (count($actions) && (! $isReordering)) {
         $columnsCount++;
@@ -195,6 +198,7 @@
 
                     @if ($areGroupingSettingsVisible)
                         <x-filament-tables::groups
+                            :direction-setting="$isGroupingDirectionSettingHidden"
                             :dropdown-on-desktop="$areGroupingSettingsInDropdownOnDesktop()"
                             :groups="$groups"
                             :trigger-action="$getGroupRecordsTriggerAction()"
@@ -257,6 +261,8 @@
             <x-filament-tables::selection.indicator
                 :all-selectable-records-count="$allSelectableRecordsCount"
                 :colspan="$columnsCount"
+                :page="$page"
+                :select-current-page-only="$selectsCurrentPageOnly"
                 x-bind:hidden="! selectedRecords.length"
                 x-show="selectedRecords.length"
             />
@@ -273,7 +279,7 @@
                 wire:poll.{{ $pollingInterval }}
             @endif
             @class([
-                'fi-ta-content divide-y divide-gray-200 overflow-x-auto dark:divide-white/10 dark:border-t-white/10',
+                'fi-ta-content relative divide-y divide-gray-200 overflow-x-auto dark:divide-white/10 dark:border-t-white/10',
                 '!border-t-0' => ! $hasHeader,
             ])
         >
@@ -293,7 +299,7 @@
                             @if ($isSelectionEnabled && (! $isReordering))
                                 <x-filament-tables::selection.checkbox
                                     {{-- Make sure the "checked" state gets re-evaluated after a Livewire request: --}}
-                                    :wire:key="$this->getId() . '.table.bulk_select_page.checkbox.' . Str::random()"
+                                    :wire:key="$this->getId() . '.table.bulk-select-page.checkbox.' . Str::random()"
                                     :label="__('filament-tables::table.fields.bulk_select_page.label')"
                                     x-bind:checked="
                                         const recordsOnPage = getRecordsOnPage()
@@ -411,6 +417,7 @@
                                 $recordAction = $getRecordAction($record);
                                 $recordKey = $getRecordKey($record);
                                 $recordUrl = $getRecordUrl($record);
+                                $openRecordUrlInNewTab = $shouldOpenRecordUrlInNewTab($record);
                                 $recordGroupKey = $group?->getStringKey($record);
                                 $recordGroupTitle = $group?->getTitle($record);
 
@@ -448,12 +455,13 @@
                                         'col-span-full',
                                         '-mx-4 w-[calc(100%+2rem)] border-y border-gray-200 first:border-t-0 dark:border-white/5 sm:-mx-6 sm:w-[calc(100%+3rem)]' => $contentGrid,
                                     ])
-                                    :x-bind:class="$hasSummary ? null : '{ \'-mb-4 border-b-0\': isGroupCollapsed(\'' . $recordGroupTitle . '\') }'"
+                                    :x-bind:class="$hasSummary ? null : '{ \'-mb-4 border-b-0\': isGroupCollapsed(' . \Illuminate\Support\Js::from($recordGroupTitle) . ') }'"
                                 >
                                     @if ($isSelectionEnabled)
                                         <x-slot name="start">
                                             <div class="px-3">
                                                 <x-filament-tables::selection.group-checkbox
+                                                    :page="$page"
                                                     :key="$recordGroupKey"
                                                     :title="$recordGroupTitle"
                                                 />
@@ -486,7 +494,9 @@
                                 x-bind:class="{
                                     'hidden':
                                         {{ $group?->isCollapsible() ? 'true' : 'false' }} &&
-                                        isGroupCollapsed('{{ $recordGroupTitle }}'),
+                                        isGroupCollapsed(
+                                            {{ \Illuminate\Support\Js::from($recordGroupTitle) }},
+                                        ),
                                     {{ ($contentGrid ? '\'bg-gray-50 dark:bg-white/10 dark:ring-white/20\'' : '\'bg-gray-50 dark:bg-white/5 before:absolute before:start-0 before:inset-y-0 before:w-0.5 before:bg-primary-600 dark:before:bg-primary-500\'') . ': isRecordSelected(\'' . $recordKey . '\')' }},
                                     {{ $contentGrid ? '\'bg-white dark:bg-white/5 dark:ring-white/10\': ! isRecordSelected(\'' . $recordKey . '\')' : '\'\':\'\'' }},
                                 }"
@@ -501,7 +511,7 @@
                                         'ps-3' => (! $contentGrid) && $hasItemBeforeRecordContent,
                                         'ps-4 sm:ps-6' => (! $contentGrid) && (! $hasItemBeforeRecordContent),
                                         'pe-3' => (! $contentGrid) && $hasItemAfterRecordContent,
-                                        'pe-4 sm:pe-6 md:pe-3' => (! $contentGrid) && (! $hasItemAfterRecordContent),
+                                        'pe-4 sm:pe-6' => (! $contentGrid) && (! $hasItemAfterRecordContent),
                                         'ps-2' => $contentGrid && $hasItemBeforeRecordContent,
                                         'ps-4' => $contentGrid && (! $hasItemBeforeRecordContent),
                                         'pe-2' => $contentGrid && $hasItemAfterRecordContent,
@@ -510,6 +520,7 @@
 
                                     $recordActionsClasses = \Illuminate\Support\Arr::toCssClasses([
                                         'md:ps-3' => (! $contentGrid),
+                                        'order-first' => $actionsPosition === ActionsPosition::BeforeColumns,
                                         'ps-3' => (! $contentGrid) && $hasItemBeforeRecordContent,
                                         'ps-4 sm:ps-6' => (! $contentGrid) && (! $hasItemBeforeRecordContent),
                                         'pe-3' => (! $contentGrid) && $hasItemAfterRecordContent,
@@ -560,7 +571,7 @@
                                         <div class="flex-1">
                                             @if ($recordUrl)
                                                 <a
-                                                    {{ \Filament\Support\generate_href_html($recordUrl) }}
+                                                    {{ \Filament\Support\generate_href_html($recordUrl, $openRecordUrlInNewTab) }}
                                                     class="{{ $recordContentClasses }}"
                                                 >
                                                     <x-filament-tables::columns.layout
@@ -779,7 +790,7 @@
                                 <x-filament-tables::selection.cell tag="th">
                                     <x-filament-tables::selection.checkbox
                                         {{-- Make sure the "checked" state gets re-evaluated after a Livewire request: --}}
-                                        :wire:key="$this->getId() . '.table.bulk_select_page.checkbox.' . Str::random()"
+                                        :wire:key="$this->getId() . '.table.bulk-select-page.checkbox.' . Str::random()"
                                         :label="__('filament-tables::table.fields.bulk_select_page.label')"
                                         x-bind:checked="
                                             const recordsOnPage = getRecordsOnPage()
@@ -856,7 +867,7 @@
                                 <x-filament-tables::selection.cell tag="th">
                                     <x-filament-tables::selection.checkbox
                                         {{-- Make sure the "checked" state gets re-evaluated after a Livewire request: --}}
-                                        :wire:key="$this->getId() . '.table.bulk_select_page.checkbox.' . Str::random()"
+                                        :wire:key="$this->getId() . '.table.bulk-select-page.checkbox.' . Str::random()"
                                         :label="__('filament-tables::table.fields.bulk_select_page.label')"
                                         x-bind:checked="
                                             const recordsOnPage = getRecordsOnPage()
@@ -946,6 +957,7 @@
                                 $recordAction = $getRecordAction($record);
                                 $recordKey = $getRecordKey($record);
                                 $recordUrl = $getRecordUrl($record);
+                                $openRecordUrlInNewTab = $shouldOpenRecordUrlInNewTab($record);
                                 $recordGroupKey = $group?->getStringKey($record);
                                 $recordGroupTitle = $group?->getTitle($record);
                             @endphp
@@ -993,6 +1005,7 @@
 
                                             <x-filament-tables::selection.group-cell>
                                                 <x-filament-tables::selection.group-checkbox
+                                                    :page="$page"
                                                     :key="$recordGroupKey"
                                                     :title="$recordGroupTitle"
                                                 />
@@ -1014,6 +1027,7 @@
                                         @if ($isSelectionEnabled && $recordCheckboxPosition === RecordCheckboxPosition::AfterCells)
                                             <x-filament-tables::selection.group-cell>
                                                 <x-filament-tables::selection.group-checkbox
+                                                    :page="$page"
                                                     :key="$recordGroupKey"
                                                     :title="$recordGroupTitle"
                                                 />
@@ -1029,7 +1043,7 @@
 
                             @if (! $isGroupsOnly)
                                 <x-filament-tables::row
-                                    :alpine-hidden="($group?->isCollapsible() ? 'true' : 'false') . ' && isGroupCollapsed(\'' . $recordGroupTitle . '\')'"
+                                    :alpine-hidden="($group?->isCollapsible() ? 'true' : 'false') . ' && isGroupCollapsed(' . \Illuminate\Support\Js::from($recordGroupTitle) . ')'"
                                     :alpine-selected="'isRecordSelected(\'' . $recordKey . '\')'"
                                     :record-action="$recordAction"
                                     :record-url="$recordUrl"
@@ -1111,6 +1125,7 @@
                                                 :record-action="$recordAction"
                                                 :record-key="$recordKey"
                                                 :record-url="$recordUrl"
+                                                :should-open-record-url-in-new-tab="$openRecordUrlInNewTab"
                                             />
                                         </x-filament-tables::cell>
                                     @endforeach

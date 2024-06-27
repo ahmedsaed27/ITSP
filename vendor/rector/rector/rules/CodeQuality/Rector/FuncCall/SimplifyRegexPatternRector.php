@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\CodeQuality\Rector\FuncCall;
 
-use RectorPrefix202402\Nette\Utils\Strings;
+use RectorPrefix202406\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Scalar\String_;
 use Rector\NodeNameResolver\Regex\RegexPatternDetector;
@@ -74,6 +74,9 @@ CODE_SAMPLE
                 continue;
             }
             if (\strpos($originalValue, '[^' . $complexPattern) !== \false) {
+                continue;
+            }
+            if ($complexPattern === $node->value) {
                 continue;
             }
             $node->value = $simplifiedValue;

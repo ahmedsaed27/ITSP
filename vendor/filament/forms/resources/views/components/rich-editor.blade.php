@@ -53,16 +53,38 @@
                         },
                     )
                 "
-                x-on:trix-change="state = $event.target.value"
+                x-on:trix-change="
+                    let value = $event.target.value
+
+                    $nextTick(() => {
+                        if (! $refs.trix) {
+                            return
+                        }
+
+                        state = value
+                    })
+                "
                 @if ($isLiveDebounced())
-                    x-on:trix-change.debounce.{{ $getLiveDebounce() }}="$wire.call('$refresh')"
+                    x-on:trix-change.debounce.{{ $getLiveDebounce() }}="
+                        $nextTick(() => {
+                            if (! $refs.trix) {
+                                return
+                            }
+
+                            $wire.call('$refresh')
+                        })
+                    "
                 @endif
                 @if (! $hasToolbarButton('attachFiles'))
                     x-on:trix-file-accept="$event.preventDefault()"
                 @endif
                 {{ $getExtraAlpineAttributeBag() }}
             >
-                <input id="trix-value-{{ $id }}" type="hidden" />
+                <input
+                    id="trix-value-{{ $id }}"
+                    x-ref="trixValue"
+                    type="hidden"
+                />
 
                 <trix-toolbar
                     id="trix-toolbar-{{ $id }}"
@@ -82,7 +104,6 @@
                                         data-trix-key="b"
                                         title="{{ __('filament-forms::components.rich_editor.toolbar_buttons.bold') }}"
                                         tabindex="-1"
-                                        title="{{ __('filament-forms::components.rich_editor.toolbar_buttons.bold') }}"
                                     >
                                         <svg
                                             class="-mx-4 h-4 dark:fill-current"
@@ -130,6 +151,7 @@
                                 @if ($hasToolbarButton('underline'))
                                     <x-filament-forms::rich-editor.toolbar.button
                                         data-trix-attribute="underline"
+                                        data-trix-key="u"
                                         title="{{ __('filament-forms::components.rich_editor.toolbar_buttons.underline') }}"
                                         tabindex="-1"
                                     >
@@ -154,6 +176,7 @@
                                 @if ($hasToolbarButton('strike'))
                                     <x-filament-forms::rich-editor.toolbar.button
                                         data-trix-attribute="strike"
+                                        data-trix-key="s"
                                         title="{{ __('filament-forms::components.rich_editor.toolbar_buttons.strike') }}"
                                         tabindex="-1"
                                     >
@@ -440,7 +463,8 @@
                                     name="href"
                                     placeholder="{{ __('filament-forms::components.rich_editor.dialogs.link.placeholder') }}"
                                     required
-                                    type="url"
+                                    type="text"
+                                    inputmode="url"
                                     class="trix-input trix-input--dialog"
                                 />
 

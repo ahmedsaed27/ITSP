@@ -59,9 +59,11 @@ trait HasRoles
             return $relation;
         }
 
-        $teamField = config('permission.table_names.roles').'.'.app(PermissionRegistrar::class)->teamsKey;
+        $teamsKey = app(PermissionRegistrar::class)->teamsKey;
+        $relation->withPivot($teamsKey);
+        $teamField = config('permission.table_names.roles').'.'.$teamsKey;
 
-        return $relation->wherePivot(app(PermissionRegistrar::class)->teamsKey, getPermissionsTeamId())
+        return $relation->wherePivot($teamsKey, getPermissionsTeamId())
             ->where(fn ($q) => $q->whereNull($teamField)->orWhere($teamField, getPermissionsTeamId()));
     }
 
@@ -111,7 +113,7 @@ trait HasRoles
     }
 
     /**
-     * Returns roles ids as array keys
+     * Returns array of role ids
      *
      * @param  string|int|array|Role|Collection|\BackedEnum  $roles
      */
@@ -159,14 +161,16 @@ trait HasRoles
             $model->unsetRelation('roles');
         } else {
             $class = \get_class($model);
+            $saved = false;
 
             $class::saved(
-                function ($object) use ($roles, $model, $teamPivot) {
-                    if ($model->getKey() != $object->getKey()) {
+                function ($object) use ($roles, $model, $teamPivot, &$saved) {
+                    if ($saved || $model->getKey() != $object->getKey()) {
                         return;
                     }
                     $model->roles()->attach($roles, $teamPivot);
                     $model->unsetRelation('roles');
+                    $saved = true;
                 }
             );
         }
@@ -228,6 +232,18 @@ trait HasRoles
 
         if ($roles instanceof \BackedEnum) {
             $roles = $roles->value;
+
+            return $this->roles
+                ->when($guard, fn ($q) => $q->where('guard_name', $guard))
+                ->pluck('name')
+                ->contains(function ($name) use ($roles) {
+                    /** @var string|\BackedEnum $name */
+                    if ($name instanceof \BackedEnum) {
+                        return $name->value == $roles;
+                    }
+
+                    return $name == $roles;
+                });
         }
 
         if (is_int($roles) || PermissionRegistrar::isUid($roles)) {
@@ -295,9 +311,7 @@ trait HasRoles
         }
 
         if (is_string($roles)) {
-            return $guard
-                ? $this->roles->where('guard_name', $guard)->contains('name', $roles)
-                : $this->roles->contains('name', $roles);
+            return $this->hasRole($roles, $guard);
         }
 
         if ($roles instanceof Role) {
@@ -312,17 +326,25 @@ trait HasRoles
             return $role instanceof Role ? $role->name : $role;
         });
 
-        return $roles->intersect(
-            $guard
-                ? $this->roles->where('guard_name', $guard)->pluck('name')
-                : $this->getRoleNames()
-        ) == $roles;
+        $roleNames = $guard
+            ? $this->roles->where('guard_name', $guard)->pluck('name')
+            : $this->getRoleNames();
+
+        $roleNames = $roleNames->transform(function ($roleName) {
+            if ($roleName instanceof \BackedEnum) {
+                return $roleName->value;
+            }
+
+            return $roleName;
+        });
+
+        return $roles->intersect($roleNames) == $roles;
     }
 
     /**
      * Determine if the model has exactly all of the given role(s).
      *
-     * @param  string|array|Role|Collection  $roles
+     * @param  string|array|Role|Collection|\BackedEnum  $roles
      */
     public function hasExactRoles($roles, ?string $guard = null): bool
     {

@@ -33,27 +33,13 @@ use Illuminate\Database\Eloquent\Model;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Illuminate\Support\Facades\File;
 
-class ApplicantResource extends Resource implements HasShieldPermissions
+class ApplicantResource extends Resource
 {
     protected static ?string $model = Applicant::class;
 
-    // protected static ?string $navigationIcon = 'heroicon-o-user';
-
-    // protected static ?string $navigationGroup = 'Hr';
     protected static ?string $navigationGroup = 'Hiring Process';
     protected static ?int $navigationSort = 1;
 
-    public static function getPermissionPrefixes(): array
-    {
-        return [
-            'view',
-            'view_any',
-            'create',
-            'update',
-            'delete',
-            'delete_any',
-        ];
-    }
 
     public static function getNavigationBadge(): ?string
     {
@@ -245,11 +231,4 @@ class ApplicantResource extends Resource implements HasShieldPermissions
         ];
     }
 
-
-    public static function canViewAny(): bool
-    {
-        $userType = auth()->user()->type;
-
-        return $userType == 0 || $userType == 2;
-    }
 }

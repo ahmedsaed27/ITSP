@@ -5,6 +5,7 @@ namespace Rector\PHPStan\NodeVisitor;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\CallLike;
 use PhpParser\Node\Expr\Closure;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\ClassLike;
@@ -13,7 +14,6 @@ use PhpParser\Node\Stmt\Function_;
 use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\NodeVisitorAbstract;
 use PHPStan\Analyser\MutatingScope;
-use PHPStan\Node\VirtualNode;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\NodeTypeResolver\PHPStan\Scope\PHPStanNodeScopeResolver;
 use Rector\PhpParser\Node\CustomNode\FileWithoutNamespace;
@@ -53,10 +53,10 @@ final class ExprScopeFromStmtNodeVisitor extends NodeVisitorAbstract
             $this->currentStmt = $node;
             return null;
         }
-        if ($node instanceof VirtualNode) {
+        if (!$node instanceof Expr) {
             return null;
         }
-        if (!$node instanceof Expr || $node->getAttribute(AttributeKey::EXPRESSION_DEPTH) < 2) {
+        if ($this->shouldSkipExpr($node)) {
             return null;
         }
         $scope = $node->getAttribute(AttributeKey::SCOPE);
@@ -71,5 +71,9 @@ final class ExprScopeFromStmtNodeVisitor extends NodeVisitorAbstract
             $this->phpStanNodeScopeResolver->processNodes($node->stmts, $this->filePath, $scope);
         }
         return null;
+    }
+    private function shouldSkipExpr(Expr $expr) : bool
+    {
+        return $expr->getAttribute(AttributeKey::EXPRESSION_DEPTH) < 2 && !$expr instanceof CallLike;
     }
 }

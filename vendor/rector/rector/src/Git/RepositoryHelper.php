@@ -3,8 +3,8 @@
 declare (strict_types=1);
 namespace Rector\Git;
 
-use RectorPrefix202402\Nette\Utils\Strings;
-use RectorPrefix202402\Symfony\Component\Process\Process;
+use RectorPrefix202406\Nette\Utils\Strings;
+use RectorPrefix202406\Symfony\Component\Process\Process;
 final class RepositoryHelper
 {
     /**

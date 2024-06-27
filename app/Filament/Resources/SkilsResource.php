@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\SkilsResource\RelationManagers;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 
-class SkilsResource extends Resource implements HasShieldPermissions
+class SkilsResource extends Resource
 {
     protected static ?string $model = Skills::class;
 
@@ -31,17 +31,6 @@ class SkilsResource extends Resource implements HasShieldPermissions
         return static::getModel()::count();
     }
 
-    public static function getPermissionPrefixes(): array
-    {
-        return [
-            'view',
-            'view_any',
-            'create',
-            'update',
-            'delete',
-            'delete_any',
-        ];
-    }
 
     public static function form(Form $form): Form
     {
@@ -94,11 +83,4 @@ class SkilsResource extends Resource implements HasShieldPermissions
         ];
     }
 
-
-    public static function canViewAny(): bool
-    {
-        $userType = auth()->user()->type;
-
-        return $userType == 0 || $userType == 2;
-    }
 }

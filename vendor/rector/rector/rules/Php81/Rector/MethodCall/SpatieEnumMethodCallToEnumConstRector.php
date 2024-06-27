@@ -12,7 +12,6 @@ use PHPStan\Type\ObjectType;
 use Rector\Rector\AbstractRector;
 use Rector\ValueObject\PhpVersionFeature;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use RectorPrefix202402\Spatie\Enum\Enum;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -23,7 +22,7 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 final class SpatieEnumMethodCallToEnumConstRector extends AbstractRector implements MinPhpVersionInterface
 {
     /**
-     * @var class-string<Enum>
+     * @var string
      */
     private const SPATIE_FQN = 'Spatie\\Enum\\Enum';
     /**
@@ -103,8 +102,8 @@ CODE_SAMPLE
             return null;
         }
         $upperCaseName = \strtoupper($enumCaseName);
-        $enumConstFetch = $this->nodeFactory->createClassConstFetch($className, $upperCaseName);
-        return new PropertyFetch($enumConstFetch, $property);
+        $classConstFetch = $this->nodeFactory->createClassConstFetch($className, $upperCaseName);
+        return new PropertyFetch($classConstFetch, $property);
     }
     private function refactorMethodCall(MethodCall $methodCall, string $methodName) : ?\PhpParser\Node\Expr\PropertyFetch
     {

@@ -9,8 +9,14 @@ Filament v3.1 introduced a prebuilt action that is able to import rows from a CS
 This feature uses [job batches](https://laravel.com/docs/queues#job-batching) and [database notifications](../../notifications/database-notifications#overview), so you need to publish those migrations from Laravel. Also, you need to publish the migrations for tables that Filament uses to store information about imports:
 
 ```bash
+# Laravel 11 and higher
+php artisan make:queue-batches-table
+php artisan make:notifications-table
+
+# Laravel 10
 php artisan queue:batches-table
 php artisan notifications:table
+
 php artisan vendor:publish --tag=filament-actions-migrations
 
 php artisan migrate
@@ -49,6 +55,16 @@ public function table(Table $table): Table
 
 The ["importer" class needs to be created](#creating-an-importer) to tell Filament how to import each row of the CSV.
 
+If you have more than one `ImportAction` in the same place, you should give each a unique name in the `make()` method:
+
+```php
+ImportAction::make('importProducts')
+    ->importer(ProductImporter::class)
+
+ImportAction::make('importBrands')
+    ->importer(BrandImporter::class)
+```
+
 ## Creating an importer
 
 To create an importer class for a model, you may use the `make:filament-importer` command, passing the name of a model:
@@ -74,7 +90,7 @@ To define the columns that can be imported, you need to override the `getColumns
 ```php
 use Filament\Actions\Imports\ImportColumn;
 
-public function getColumns(): array
+public static function getColumns(): array
 {
     return [
         ImportColumn::make('name')
@@ -242,7 +258,7 @@ use App\Models\Author;
 use Filament\Actions\Imports\ImportColumn;
 
 ImportColumn::make('author')
-    ->relationship(resolveUsing: function (array $state): ?Author {
+    ->relationship(resolveUsing: function (string $state): ?Author {
         return Author::query()
             ->where('email', $state)
             ->orWhere('username', $state)
@@ -257,7 +273,7 @@ use App\Models\Author;
 use Filament\Actions\Imports\ImportColumn;
 
 ImportColumn::make('author')
-    ->relationship(resolveUsing: function (array $state): ?Author {
+    ->relationship(resolveUsing: function (string $state): ?Author {
         if (filter_var($state, FILTER_VALIDATE_EMAIL)) {
             return 'email';
         }
@@ -376,6 +392,28 @@ public function resolveRecord(): ?Product
 }
 ```
 
+If you'd like to fail the import row if no record is found, you can throw a `RowImportFailedException` with a message:
+
+```php
+use App\Models\Product;
+use Filament\Actions\Imports\Exceptions\RowImportFailedException;
+
+public function resolveRecord(): ?Product
+{
+    $product = Product::query()
+        ->where('sku', $this->data['sku'])
+        ->first();
+
+    if (! $product) {
+        throw new RowImportFailedException("No product found with SKU [{$this->data['sku']}].");
+    }
+
+    return $product;
+}
+```
+
+When the import is completed, the user will be able to download a CSV of failed rows, which will contain the error messages.
+
 ### Ignoring blank state for an import column
 
 By default, if a column in the CSV is blank, and mapped by the user, and it's not required by validation, the column will be imported as `null` in the database. If you'd like to ignore blank state, and use the existing value in the database instead, you can call the `ignoreBlankState()` method:
@@ -454,6 +492,15 @@ use Filament\Actions\Imports\ImportColumn;
 
 ImportColumn::make('sku')
     ->example('ABC123')
+```
+
+Or if you want to add more than one example row, you can pass an array to the `examples()` method:
+
+```php
+use Filament\Actions\Imports\ImportColumn;
+
+ImportColumn::make('sku')
+    ->examples(['ABC123', 'DEF456'])
 ```
 
 By default, the name of the column is used in the header of the example CSV. You can customize the header per-column using `exampleHeader()`:
@@ -537,6 +584,16 @@ ImportAction::make()
 ```
 
 You can only specify a single character, otherwise an exception will be thrown.
+
+## Changing the column header offset
+
+If your column headers are not on the first row of the CSV, you can call the `headerOffset()` method on the action, passing the number of rows to skip:
+
+```php
+ImportAction::make()
+    ->importer(ProductImporter::class)
+    ->headerOffset(5)
+```
 
 ## Customizing the import job
 
@@ -657,6 +714,22 @@ use Filament\Actions\Imports\ImportColumn;
 
 ImportColumn::make('name')
     ->validationAttribute('full name')
+```
+
+## Customizing import file validation
+
+You can add new [Laravel validation rules](https://laravel.com/docs/validation#available-validation-rules) for the import file using the `fileRules()` method:
+
+```php
+use Illuminate\Validation\Rules\File;
+
+ImportAction::make()
+    ->importer(ProductImporter::class)
+    ->fileRules([
+        'max:1024',
+        // or
+        File::types(['csv', 'txt'])->max(1024),
+    ]),
 ```
 
 ## Lifecycle hooks

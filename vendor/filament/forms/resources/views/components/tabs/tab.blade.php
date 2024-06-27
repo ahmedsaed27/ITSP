@@ -8,7 +8,7 @@
         'mt-6' => ! $isContained,
     ]);
 
-    $inactiveTabClasses = 'invisible h-0 overflow-y-hidden p-0';
+    $inactiveTabClasses = 'invisible absolute h-0 overflow-hidden p-0';
 @endphp
 
 <div
@@ -24,7 +24,7 @@
                 'id' => $id,
                 'role' => 'tabpanel',
                 'tabindex' => '0',
-                'wire:key' => "{$this->getId()}.{$getStatePath()}." . \Filament\Forms\Components\Tab::class . ".tabs.{$id}",
+                'wire:key' => "{$this->getId()}.{$getStatePath()}." . \Filament\Forms\Components\Tabs\Tab::class . ".tabs.{$id}",
             ], escape: false)
             ->merge($getExtraAttributes(), escape: false)
             ->class(['fi-fo-tabs-tab outline-none'])

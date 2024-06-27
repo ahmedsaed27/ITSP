@@ -72,6 +72,11 @@ final class Option
      */
     public const SYMFONY_CONTAINER_PHP_PATH_PARAMETER = 'symfony_container_php_path';
     /**
+     * @internal Use @see \Rector\Config\RectorConfig::newLineOnFluentCall()
+     * @var string
+     */
+    public const NEW_LINE_ON_FLUENT_CALL = 'new_line_on_fluent_call';
+    /**
      * @var string
      */
     public const CLEAR_CACHE = 'clear-cache';
@@ -195,4 +200,9 @@ final class Option
      * @var string
      */
     public const REGISTERED_RECTOR_SETS = 'registered_rector_sets';
+    /**
+     * @internal For verify skipped rules exists in registered rules
+     * @var string
+     */
+    public const SKIPPED_RECTOR_RULES = 'skipped_rector_rules';
 }

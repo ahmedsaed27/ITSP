@@ -6,9 +6,9 @@ namespace Livewire\Features\SupportTesting {
     use Closure;
 
     class Testable {
-        public function fillForm(array $state = [], string $formName = 'form'): static {}
+        public function fillForm(array | Closure $state = [], string $formName = 'form'): static {}
 
-        public function assertFormSet(array $state, string $formName = 'form'): static {}
+        public function assertFormSet(array | Closure $state, string $formName = 'form'): static {}
 
         public function assertHasFormErrors(array $keys = [], string $formName = 'form'): static {}
 
@@ -18,6 +18,8 @@ namespace Livewire\Features\SupportTesting {
 
         public function assertFormFieldExists(string $fieldName, string | Closure $formName = 'form', ?Closure $checkFieldUsing = null): static {}
 
+        public function assertFormFieldDoesNotExist(string $fieldName, string $formName = 'form'): static {}
+
         public function assertFormFieldIsDisabled(string $fieldName, string $formName = 'form'): static {}
 
         public function assertFormFieldIsEnabled(string $fieldName, string $formName = 'form'): static {}
@@ -25,6 +27,10 @@ namespace Livewire\Features\SupportTesting {
         public function assertFormFieldIsHidden(string $fieldName, string $formName = 'form'): static {}
 
         public function assertFormFieldIsVisible(string $fieldName, string $formName = 'form'): static {}
+
+        public function assertFormComponentExists(string $componentKey, string | Closure $formName = 'form', ?Closure $checkComponentUsing = null): static {}
+
+        public function assertFormComponentDoesNotExist(string $componentKey, string $formName = 'form'): static {}
 
         public function mountFormComponentAction(string | array $component, string | array $name, array $arguments = [], string $formName = 'form'): static {}
 

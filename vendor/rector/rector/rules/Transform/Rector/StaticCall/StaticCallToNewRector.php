@@ -12,7 +12,7 @@ use Rector\Rector\AbstractRector;
 use Rector\Transform\ValueObject\StaticCallToNew;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202402\Webmozart\Assert\Assert;
+use RectorPrefix202406\Webmozart\Assert\Assert;
 /**
  * @changelog https://github.com/symfony/symfony/pull/35308
  *
@@ -54,7 +54,7 @@ CODE_SAMPLE
         return [StaticCall::class];
     }
     /**
-     * @param Node\Expr\StaticCall $node
+     * @param StaticCall $node
      */
     public function refactor(Node $node) : ?Node
     {

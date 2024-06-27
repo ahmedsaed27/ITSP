@@ -3,17 +3,17 @@
 declare (strict_types=1);
 namespace Rector\Console\Command;
 
-use RectorPrefix202402\Nette\Utils\Json;
+use RectorPrefix202406\Nette\Utils\Json;
 use Rector\ChangesReporting\Output\ConsoleOutputFormatter;
 use Rector\Configuration\Option;
 use Rector\Contract\Rector\RectorInterface;
 use Rector\PostRector\Contract\Rector\PostRectorInterface;
 use Rector\Skipper\SkipCriteriaResolver\SkippedClassResolver;
-use RectorPrefix202402\Symfony\Component\Console\Command\Command;
-use RectorPrefix202402\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202402\Symfony\Component\Console\Input\InputOption;
-use RectorPrefix202402\Symfony\Component\Console\Output\OutputInterface;
-use RectorPrefix202402\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202406\Symfony\Component\Console\Command\Command;
+use RectorPrefix202406\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202406\Symfony\Component\Console\Input\InputOption;
+use RectorPrefix202406\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202406\Symfony\Component\Console\Style\SymfonyStyle;
 final class ListRulesCommand extends Command
 {
     /**
@@ -55,7 +55,7 @@ final class ListRulesCommand extends Command
         $outputFormat = $input->getOption(Option::OUTPUT_FORMAT);
         if ($outputFormat === 'json') {
             $data = ['rectors' => $rectorClasses, 'skipped-rectors' => $skippedClasses];
-            echo Json::encode($data, Json::PRETTY) . \PHP_EOL;
+            echo Json::encode($data, \true) . \PHP_EOL;
             return Command::SUCCESS;
         }
         $this->symfonyStyle->title('Loaded Rector rules');

@@ -9,6 +9,8 @@ use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\BinaryOp\Concat;
 use PhpParser\Node\Expr\ConstFetch;
+use PhpParser\Node\Expr\UnaryMinus;
+use PhpParser\Node\Expr\UnaryPlus;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Scalar\DNumber;
 use PhpParser\Node\Scalar\LNumber;
@@ -17,7 +19,9 @@ use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassConst;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ReflectionProvider;
+use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\Rector\AbstractRector;
+use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\ValueObject\PhpVersionFeature;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
@@ -32,13 +36,19 @@ final class AddTypeToConstRector extends AbstractRector implements MinPhpVersion
      * @var \PHPStan\Reflection\ReflectionProvider
      */
     private $reflectionProvider;
-    public function __construct(ReflectionProvider $reflectionProvider)
+    /**
+     * @readonly
+     * @var \Rector\StaticTypeMapper\StaticTypeMapper
+     */
+    private $staticTypeMapper;
+    public function __construct(ReflectionProvider $reflectionProvider, StaticTypeMapper $staticTypeMapper)
     {
         $this->reflectionProvider = $reflectionProvider;
+        $this->staticTypeMapper = $staticTypeMapper;
     }
     public function getRuleDefinition() : RuleDefinition
     {
-        return new RuleDefinition('Add const to type', [new CodeSample(<<<'CODE_SAMPLE'
+        return new RuleDefinition('Add type to constants', [new CodeSample(<<<'CODE_SAMPLE'
 final class SomeClass
 {
     public const TYPE = 'some_type';
@@ -75,7 +85,7 @@ CODE_SAMPLE
         $parentClassReflections = $this->getParentReflections($className);
         $hasChanged = \false;
         foreach ($classConsts as $classConst) {
-            $valueType = null;
+            $valueTypes = [];
             // If a type is set, skip
             if ($classConst->type !== null) {
                 continue;
@@ -87,9 +97,20 @@ CODE_SAMPLE
                 if ($this->canBeInherited($classConst, $node)) {
                     continue;
                 }
-                $valueType = $this->findValueType($constNode->value);
+                $valueTypes[] = $this->findValueType($constNode->value);
             }
-            if (!($valueType ?? null) instanceof Identifier) {
+            if ($valueTypes === []) {
+                continue;
+            }
+            if (\count($valueTypes) > 1) {
+                $valueTypes = \array_unique($valueTypes, \SORT_REGULAR);
+            }
+            // once more verify after uniquate
+            if (\count($valueTypes) > 1) {
+                continue;
+            }
+            $valueType = \current($valueTypes);
+            if (!$valueType instanceof Identifier) {
                 continue;
             }
             $classConst->type = $valueType;
@@ -119,6 +140,9 @@ CODE_SAMPLE
     }
     private function findValueType(Expr $expr) : ?Identifier
     {
+        if ($expr instanceof UnaryPlus || $expr instanceof UnaryMinus) {
+            return $this->findValueType($expr->expr);
+        }
         if ($expr instanceof String_) {
             return new Identifier('string');
         }
@@ -128,11 +152,16 @@ CODE_SAMPLE
         if ($expr instanceof DNumber) {
             return new Identifier('float');
         }
-        if ($expr instanceof ConstFetch && $expr->name->toLowerString() !== 'null') {
-            return new Identifier('bool');
-        }
-        if ($expr instanceof ConstFetch && $expr->name->toLowerString() === 'null') {
-            return new Identifier('null');
+        if ($expr instanceof ConstFetch) {
+            if ($expr->name->toLowerString() === 'null') {
+                return new Identifier('null');
+            }
+            $type = $this->nodeTypeResolver->getNativeType($expr);
+            $nodeType = $this->staticTypeMapper->mapPHPStanTypeToPhpParserNode($type, TypeKind::PROPERTY);
+            if (!$nodeType instanceof Identifier) {
+                return null;
+            }
+            return $nodeType;
         }
         if ($expr instanceof Array_) {
             return new Identifier('array');
@@ -157,6 +186,6 @@ CODE_SAMPLE
     }
     private function canBeInherited(ClassConst $classConst, Class_ $class) : bool
     {
-        return !$class->isFinal() && !$classConst->isPrivate();
+        return !$class->isFinal() && !$classConst->isPrivate() && !$classConst->isFinal();
     }
 }

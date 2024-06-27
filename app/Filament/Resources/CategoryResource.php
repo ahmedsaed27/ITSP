@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Storage;
 
-class CategoryResource extends Resource implements HasShieldPermissions
+class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
 
@@ -37,17 +37,6 @@ class CategoryResource extends Resource implements HasShieldPermissions
     }
 
 
-    public static function getPermissionPrefixes(): array
-    {
-        return [
-            'view',
-            'view_any',
-            'create',
-            'update',
-            'delete',
-            'delete_any',
-        ];
-    }
 
     public static function form(Form $form): Form
     {
@@ -127,10 +116,4 @@ class CategoryResource extends Resource implements HasShieldPermissions
         ];
     }
 
-    public static function canViewAny(): bool
-    {
-        $userType = auth()->user()->type;
-
-        return $userType == 0 || $userType == 3;
-    }
 }

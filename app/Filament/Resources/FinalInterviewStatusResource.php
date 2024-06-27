@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class FinalInterviewStatusResource extends Resource implements HasShieldPermissions
+class FinalInterviewStatusResource extends Resource
 {
     protected static ?string $model = FinalInterviewStatus::class;
 
@@ -35,17 +35,6 @@ class FinalInterviewStatusResource extends Resource implements HasShieldPermissi
             ]);
     }
 
-    public static function getPermissionPrefixes(): array
-    {
-        return [
-            'view',
-            'view_any',
-            'create',
-            'update',
-            'delete',
-            'delete_any',
-        ];
-    }
 
     public static function table(Table $table): Table
     {
@@ -104,6 +93,6 @@ class FinalInterviewStatusResource extends Resource implements HasShieldPermissi
 
     public static function canDeleteAny(): bool
     {
-        return false;  
+        return false;
     }
 }

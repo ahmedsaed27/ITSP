@@ -15,7 +15,8 @@ trait InteractsWithDockerComposeServices
     protected $services = [
         'mysql',
         'pgsql',
-        'mariadb',
+        'mariadb10',
+        'mariadb11',
         'redis',
         'memcached',
         'meilisearch',
@@ -65,6 +66,11 @@ trait InteractsWithDockerComposeServices
             ? Yaml::parseFile($composePath)
             : Yaml::parse(file_get_contents(__DIR__ . '/../../../stubs/docker-compose.stub'));
 
+        // Prepare the installation of the "mariadb-client" package if the MariaDB service is used...
+        if (in_array('mariadb10', $services) || in_array('mariadb11', $services)) {
+            $compose['services']['laravel.test']['build']['args']['MYSQL_CLIENT'] = 'mariadb-client';
+        }
+
         // Adds the new services as dependencies of the laravel.test service...
         if (! array_key_exists('laravel.test', $compose['services'])) {
             $this->warn('Couldn\'t find the laravel.test service. Make sure you add ['.implode(',', $services).'] to the depends_on config.');
@@ -87,7 +93,7 @@ trait InteractsWithDockerComposeServices
         // Merge volumes...
         collect($services)
             ->filter(function ($service) {
-                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'redis', 'meilisearch', 'typesense', 'minio']);
+                return in_array($service, ['mysql', 'pgsql', 'mariadb10', 'mariadb11', 'redis', 'meilisearch', 'typesense', 'minio']);
             })->filter(function ($service) use ($compose) {
                 return ! array_key_exists($service, $compose['volumes'] ?? []);
             })->each(function ($service) use (&$compose) {
@@ -118,7 +124,8 @@ trait InteractsWithDockerComposeServices
         $environment = file_get_contents($this->laravel->basePath('.env'));
 
         if (in_array('mysql', $services) ||
-            in_array('mariadb', $services) ||
+            in_array('mariadb10', $services) ||
+            in_array('mariadb11', $services) ||
             in_array('pgsql', $services)) {
             $defaults = [
                 '# DB_HOST=127.0.0.1',
@@ -140,7 +147,7 @@ trait InteractsWithDockerComposeServices
             $environment = preg_replace('/DB_CONNECTION=.*/', 'DB_CONNECTION=pgsql', $environment);
             $environment = str_replace('DB_HOST=127.0.0.1', "DB_HOST=pgsql", $environment);
             $environment = str_replace('DB_PORT=3306', "DB_PORT=5432", $environment);
-        } elseif (in_array('mariadb', $services)) {
+        } elseif (in_array('mariadb10', $services) || in_array('mariadb11', $services)) {
             if ($this->laravel->config->has('database.connections.mariadb')) {
                 $environment = preg_replace('/DB_CONNECTION=.*/', 'DB_CONNECTION=mariadb', $environment);
             }
@@ -185,7 +192,9 @@ trait InteractsWithDockerComposeServices
         }
 
         if (in_array('mailpit', $services)) {
+            $environment = preg_replace("/^MAIL_MAILER=(.*)/m", "MAIL_MAILER=smtp", $environment);
             $environment = preg_replace("/^MAIL_HOST=(.*)/m", "MAIL_HOST=mailpit", $environment);
+            $environment = preg_replace("/^MAIL_PORT=(.*)/m", "MAIL_PORT=1025", $environment);
         }
 
         file_put_contents($this->laravel->basePath('.env'), $environment);

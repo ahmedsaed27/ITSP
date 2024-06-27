@@ -4,7 +4,7 @@ return [
     'password_confirm' => [
         'heading' => 'Konfirmasi kata sandi',
         'description' => 'Harap konfirmasi kata sandi Anda untuk melanjutkan.',
-        'current_password' => 'Current password',
+        'current_password' => 'Kata sandi saat ini',
     ],
     'two_factor' => [
         'heading' => 'Two Factor Challenge',

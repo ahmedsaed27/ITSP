@@ -6,9 +6,11 @@ namespace Rector\DeadCode\Rector\ClassMethod;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
+use PHPStan\Reflection\ClassReflection;
+use Rector\DeadCode\NodeManipulator\ClassMethodParamRemover;
 use Rector\NodeAnalyzer\ParamAnalyzer;
 use Rector\Rector\AbstractRector;
-use Rector\Removing\NodeManipulator\ComplexNodeRemover;
+use Rector\Reflection\ReflectionResolver;
 use Rector\ValueObject\MethodName;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -24,13 +26,19 @@ final class RemoveUnusedConstructorParamRector extends AbstractRector
     private $paramAnalyzer;
     /**
      * @readonly
-     * @var \Rector\Removing\NodeManipulator\ComplexNodeRemover
+     * @var \Rector\Reflection\ReflectionResolver
      */
-    private $complexNodeRemover;
-    public function __construct(ParamAnalyzer $paramAnalyzer, ComplexNodeRemover $complexNodeRemover)
+    private $reflectionResolver;
+    /**
+     * @readonly
+     * @var \Rector\DeadCode\NodeManipulator\ClassMethodParamRemover
+     */
+    private $classMethodParamRemover;
+    public function __construct(ParamAnalyzer $paramAnalyzer, ReflectionResolver $reflectionResolver, ClassMethodParamRemover $classMethodParamRemover)
     {
         $this->paramAnalyzer = $paramAnalyzer;
-        $this->complexNodeRemover = $complexNodeRemover;
+        $this->reflectionResolver = $reflectionResolver;
+        $this->classMethodParamRemover = $classMethodParamRemover;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -83,28 +91,20 @@ CODE_SAMPLE
         if ($constructorClassMethod->isAbstract()) {
             return null;
         }
-        $changedConstructorClassMethod = $this->processRemoveParams($constructorClassMethod);
+        $classReflection = $this->reflectionResolver->resolveClassReflection($node);
+        if (!$classReflection instanceof ClassReflection) {
+            return null;
+        }
+        $interfaces = $classReflection->getInterfaces();
+        foreach ($interfaces as $interface) {
+            if ($interface->hasNativeMethod(MethodName::CONSTRUCT)) {
+                return null;
+            }
+        }
+        $changedConstructorClassMethod = $this->classMethodParamRemover->processRemoveParams($constructorClassMethod);
         if (!$changedConstructorClassMethod instanceof ClassMethod) {
             return null;
         }
         return $node;
-    }
-    private function processRemoveParams(ClassMethod $classMethod) : ?ClassMethod
-    {
-        $paramKeysToBeRemoved = [];
-        foreach ($classMethod->params as $key => $param) {
-            if ($this->paramAnalyzer->isParamUsedInClassMethod($classMethod, $param)) {
-                continue;
-            }
-            $paramKeysToBeRemoved[] = $key;
-        }
-        if ($paramKeysToBeRemoved === []) {
-            return null;
-        }
-        $removedParamKeys = $this->complexNodeRemover->processRemoveParamWithKeys($classMethod, $paramKeysToBeRemoved);
-        if ($removedParamKeys !== []) {
-            return $classMethod;
-        }
-        return null;
     }
 }

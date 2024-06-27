@@ -115,7 +115,7 @@ Once a table and form have been defined for the relation manager, visit the [Edi
 
 ### Read-only mode
 
-Relation managers are usually displayed on either the Edit or View page of a resource. On the View page, Filament will automatically hide all actions that modify the relationship, such as create, edit, and delete. We call this "read-only mode", and it is there by default to preserve the read-only behaviour of the View page. However, you can disable this behaviour, by overriding the `isReadOnly()` method on the relation manager class to return `false` all the time:
+Relation managers are usually displayed on either the Edit or View page of a resource. On the View page, Filament will automatically hide all actions that modify the relationship, such as create, edit, and delete. We call this "read-only mode", and it is there by default to preserve the read-only behavior of the View page. However, you can disable this behavior, by overriding the `isReadOnly()` method on the relation manager class to return `false` all the time:
 
 ```php
 public function isReadOnly(): bool
@@ -337,6 +337,17 @@ AttachAction::make()
     ->recordSelectSearchColumns(['title', 'description'])
 ```
 
+### Attaching multiple records
+
+The `multiple()` method on the `AttachAction` component allows you to select multiple values:
+
+```php
+use Filament\Tables\Actions\AttachAction;
+
+AttachAction::make()
+    ->multiple()
+```
+
 ### Customizing the select field in the attached modal
 
 You may customize the select field object that is used during attachment by passing a function to the `recordSelect()` method:
@@ -438,6 +449,17 @@ use Filament\Tables\Actions\AssociateAction;
 
 AssociateAction::make()
     ->recordSelectSearchColumns(['title', 'description'])
+```
+
+### Associating multiple records
+
+The `multiple()` method on the `AssociateAction` component allows you to select multiple values:
+
+```php
+use Filament\Tables\Actions\AssociateAction;
+
+AssociateAction::make()
+    ->multiple()
 ```
 
 ### Customizing the select field in the associate modal
@@ -640,6 +662,30 @@ On the Edit or View page class, override the `hasCombinedRelationManagerTabsWith
 public function hasCombinedRelationManagerTabsWithContent(): bool
 {
     return true;
+}
+```
+
+### Setting an icon for the form tab
+
+On the Edit or View page class, override the `getContentTabIcon()` method:
+
+```php
+public function getContentTabIcon(): ?string
+{
+    return 'heroicon-m-cog';
+}
+```
+
+### Setting the position of the form tab
+
+By default, the form tab is rendered before the relation tabs. To render it after, you can override the `getContentTabPosition()` method on the Edit or View page class:
+
+```php
+use Filament\Resources\Pages\ContentTabPosition;
+
+public function getContentTabPosition(): ?ContentTabPosition
+{
+    return ContentTabPosition::After;
 }
 ```
 

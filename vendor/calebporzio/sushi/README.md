@@ -12,6 +12,11 @@ Enjoy, and thanks for the support! ❤️
 
 Learn more about **Sponsorware** at [github.com/sponsorware/docs](https://github.com/sponsorware/docs) 💰.
 
+
+## Requirements
+
+The [`pdo-sqlite` PHP extension](https://www.php.net/manual/en/ref.pdo-sqlite.php) must be installed on your system to use this package.
+
 ## Install
 ```
 composer require calebporzio/sushi
@@ -103,7 +108,7 @@ You can even use Laravel's `exists:table,column` database checking request valid
 
 ```php
 $data = request()->validate([
-    'state' => ['required', 'exists:App\Model\State,abbr'],
+    'state' => ['required', 'exists:App\Models\State,abbr'],
 ]);
 ```
 
@@ -126,6 +131,28 @@ class Products extends Model
     protected $schema = [
         'price' => 'float',
     ];
+}
+```
+
+## Advanced Usage
+
+When you need more flexibility, you can implement the `afterMigrate(BluePrint $table)` method, allowing you to customize the table after it has been created. This might be useful for adding indexes to certain columns.
+
+```php
+class Products extends Model
+{
+    use \Sushi\Sushi;
+
+    protected $rows = [
+        ['name' => 'Lawn Mower', 'price' => '226.99'],
+        ['name' => 'Leaf Blower', 'price' => '134.99'],
+        ['name' => 'Rake', 'price' => '9.99'],
+    ];
+
+    protected function afterMigrate(Blueprint $table)
+    {
+        $table->index('name');
+    }
 }
 ```
 
@@ -247,7 +274,7 @@ Sushi requires you to add two properties to your model, if it uses a string-base
 class Role extends Model
 {
     use \Sushi\Sushi;
-    
+
     public $incrementing = false;
 
     protected $keyType = 'string';

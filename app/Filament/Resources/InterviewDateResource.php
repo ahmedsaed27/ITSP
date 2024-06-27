@@ -25,7 +25,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class InterviewDateResource extends Resource implements HasShieldPermissions
+class InterviewDateResource extends Resource
 {
     protected static ?string $model = InterviewDate::class;
 
@@ -44,17 +44,6 @@ class InterviewDateResource extends Resource implements HasShieldPermissions
             ]);
     }
 
-    public static function getPermissionPrefixes(): array
-    {
-        return [
-            'view',
-            'view_any',
-            'create',
-            'update',
-            'delete',
-            'delete_any',
-        ];
-    }
 
     public static function table(Table $table): Table
     {
@@ -65,7 +54,7 @@ class InterviewDateResource extends Resource implements HasShieldPermissions
                 TextColumn::make('mail_to'),
                 TextColumn::make('date')->dateTime(),
                 ToggleColumn::make('attend'),
-                 
+
                 // TextColumn::make('attend')
                 // ->formatStateUsing(fn (string $state): string => $state == 0 ? 'absence' : 'attend')->badge(),
             ])
@@ -138,5 +127,5 @@ class InterviewDateResource extends Resource implements HasShieldPermissions
     public static  function canCreate(): bool
     {
         return false;
-    } 
+    }
 }

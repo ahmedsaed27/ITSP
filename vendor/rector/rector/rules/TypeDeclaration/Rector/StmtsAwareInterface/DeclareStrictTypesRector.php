@@ -14,6 +14,7 @@ use Rector\ChangesReporting\ValueObject\RectorWithLineChange;
 use Rector\Contract\PhpParser\Node\StmtsAwareInterface;
 use Rector\PhpParser\Node\CustomNode\FileWithoutNamespace;
 use Rector\Rector\AbstractRector;
+use Rector\TypeDeclaration\NodeAnalyzer\DeclareStrictTypeFinder;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -21,6 +22,15 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  */
 final class DeclareStrictTypesRector extends AbstractRector
 {
+    /**
+     * @readonly
+     * @var \Rector\TypeDeclaration\NodeAnalyzer\DeclareStrictTypeFinder
+     */
+    private $declareStrictTypeFinder;
+    public function __construct(DeclareStrictTypeFinder $declareStrictTypeFinder)
+    {
+        $this->declareStrictTypeFinder = $declareStrictTypeFinder;
+    }
     public function getRuleDefinition() : RuleDefinition
     {
         return new RuleDefinition('Add declare(strict_types=1) if missing', [new CodeSample(<<<'CODE_SAMPLE'
@@ -38,8 +48,8 @@ CODE_SAMPLE
 )]);
     }
     /**
-     * @param Node[] $nodes
-     * @return Node[]|null
+     * @param Stmt[] $nodes
+     * @return Stmt[]|null
      */
     public function beforeTraverse(array $nodes) : ?array
     {
@@ -48,11 +58,10 @@ CODE_SAMPLE
         if ($this->skipper->shouldSkipElementAndFilePath(self::class, $filePath)) {
             return null;
         }
-        $newStmts = $this->file->getNewStmts();
-        if ($newStmts === []) {
+        if ($nodes === []) {
             return null;
         }
-        $rootStmt = \current($newStmts);
+        $rootStmt = \current($nodes);
         $stmt = $rootStmt;
         if ($rootStmt instanceof FileWithoutNamespace) {
             $currentStmt = \current($rootStmt->stmts);
@@ -62,7 +71,9 @@ CODE_SAMPLE
             $nodes = $rootStmt->stmts;
             $stmt = $currentStmt;
         }
-        if ($this->shouldSkip($stmt)) {
+        // when first stmt is Declare_, verify if there is strict_types definition already,
+        // as multiple declare is allowed, with declare(strict_types=1) only allowed on very first stmt
+        if ($this->declareStrictTypeFinder->hasDeclareStrictTypes($stmt)) {
             return null;
         }
         $declareDeclare = new DeclareDeclare(new Identifier('strict_types'), new LNumber(1));
@@ -90,18 +101,5 @@ CODE_SAMPLE
     {
         // workaroudn, as Rector now only hooks to specific nodes, not arrays
         return null;
-    }
-    private function shouldSkip(Stmt $stmt) : bool
-    {
-        // when first stmt is Declare_, verify if there is strict_types definition already,
-        // as multiple declare is allowed, with declare(strict_types=1) only allowed on very first stmt
-        if ($stmt instanceof Declare_) {
-            foreach ($stmt->declares as $declare) {
-                if ($declare->key->toString() === 'strict_types') {
-                    return \true;
-                }
-            }
-        }
-        return \false;
     }
 }

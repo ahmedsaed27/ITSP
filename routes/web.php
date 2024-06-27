@@ -1,6 +1,6 @@
 <?php
 
-
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,3 +13,7 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
+Route::get('test' , function(){
+    return User::find(3)->can('view_any_applicant') ? 'true' : 'false';
+});

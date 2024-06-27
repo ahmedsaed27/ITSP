@@ -8,6 +8,7 @@ use PhpParser\Node\AttributeGroup;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\Property;
+use PhpParser\Node\Stmt\Use_;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use Rector\BetterPhpDocParser\PhpDoc\DoctrineAnnotationTagValueNode;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
@@ -29,7 +30,7 @@ use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202402\Webmozart\Assert\Assert;
+use RectorPrefix202406\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Php80\Rector\Property\NestedAnnotationToAttributeRector\NestedAnnotationToAttributeRectorTest
  *
@@ -149,7 +150,7 @@ CODE_SAMPLE
         return PhpVersion::PHP_80;
     }
     /**
-     * @param Node\Stmt\Use_[] $uses
+     * @param Use_[] $uses
      * @return AttributeGroup[]
      */
     private function transformDoctrineAnnotationClassesToAttributeGroups(PhpDocInfo $phpDocInfo, array $uses) : array

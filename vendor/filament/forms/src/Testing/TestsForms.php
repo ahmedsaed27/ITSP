@@ -4,9 +4,11 @@ namespace Filament\Forms\Testing;
 
 use Closure;
 use Filament\Forms\ComponentContainer;
+use Filament\Forms\Components\Component;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Contracts\HasForms;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Testing\Assert;
 use Livewire\Features\SupportTesting\Testable;
@@ -20,7 +22,7 @@ class TestsForms
 {
     public function fillForm(): Closure
     {
-        return function (array $state = [], string $formName = 'form'): static {
+        return function (array | Closure $state = [], string $formName = 'form'): static {
             /** @phpstan-ignore-next-line  */
             $this->assertFormExists($formName);
 
@@ -31,9 +33,30 @@ class TestsForms
 
             $formStatePath = $form->getStatePath();
 
-            foreach (Arr::dot($state, prepend: filled($formStatePath) ? "{$formStatePath}." : '') as $key => $value) {
-                $this->set($key, $value);
+            if ($state instanceof Closure) {
+                $state = $state($form->getRawState());
             }
+
+            if (is_array($state)) {
+                $state = Arr::undot($state);
+
+                if (filled($formStatePath)) {
+                    $state = Arr::undot([$formStatePath => $state]);
+                }
+
+                foreach (Arr::dot($state) as $key => $value) {
+                    if ($value instanceof UploadedFile ||
+                        (is_array($value) && isset($value[0]) && $value[0] instanceof UploadedFile)
+                    ) {
+                        $this->set($key, $value);
+                        Arr::set($state, $key, $this->get($key));
+                    }
+                }
+
+                $this->call('fillFormDataForTesting', $state);
+            }
+
+            $this->refresh();
 
             return $this;
         };
@@ -41,7 +64,7 @@ class TestsForms
 
     public function assertFormSet(): Closure
     {
-        return function (array $state, string $formName = 'form'): static {
+        return function (array | Closure $state, string $formName = 'form'): static {
             /** @phpstan-ignore-next-line  */
             $this->assertFormExists($formName);
 
@@ -52,8 +75,14 @@ class TestsForms
 
             $formStatePath = $form->getStatePath();
 
-            foreach (Arr::dot($state, prepend: filled($formStatePath) ? "{$formStatePath}." : '') as $key => $value) {
-                $this->assertSet($key, $value);
+            if ($state instanceof Closure) {
+                $state = $state($form->getRawState());
+            }
+
+            if (is_array($state)) {
+                foreach (Arr::dot($state, prepend: filled($formStatePath) ? "{$formStatePath}." : '') as $key => $value) {
+                    $this->assertSet($key, $value);
+                }
             }
 
             return $this;
@@ -136,6 +165,62 @@ class TestsForms
         };
     }
 
+    public function assertFormComponentExists(): Closure
+    {
+        return function (string $componentKey, string | Closure $formName = 'form', ?Closure $checkComponentUsing = null): static {
+            if ($formName instanceof Closure) {
+                $checkComponentUsing = $formName;
+                $formName = 'form';
+            }
+
+            /** @phpstan-ignore-next-line  */
+            $this->assertFormExists($formName);
+
+            /** @var ComponentContainer $form */
+            $form = $this->instance()->{$formName};
+
+            /** @var ?Component $component */
+            $component = $form->getFlatComponentsByKey(withHidden: true)[$componentKey] ?? null;
+
+            $livewireClass = $this->instance()::class;
+
+            Assert::assertInstanceOf(
+                Component::class,
+                $component,
+                "Failed asserting that a component with the key [{$componentKey}] exists on the form with the name [{$formName}] on the [{$livewireClass}] component."
+            );
+
+            if ($checkComponentUsing) {
+                Assert::assertTrue(
+                    $checkComponentUsing($component),
+                    "Failed asserting that a component with the key [{$componentKey}] and provided configuration exists on the form with the name [{$formName}] on the [{$livewireClass}] component."
+                );
+            }
+
+            return $this;
+        };
+    }
+
+    public function assertFormComponentDoesNotExist(): Closure
+    {
+        return function (string $componentKey, string $formName = 'form'): static {
+            /** @var ComponentContainer $form */
+            $form = $this->instance()->{$formName};
+
+            $components = $form->getFlatComponentsByKey(withHidden: true);
+
+            $livewireClass = $this->instance()::class;
+
+            Assert::assertArrayNotHasKey(
+                $componentKey,
+                $components,
+                "Failed asserting that a component with the key [{$componentKey}] does not exist on the form named [{$formName}] on the [{$livewireClass}] component."
+            );
+
+            return $this;
+        };
+    }
+
     public function assertFormFieldExists(): Closure
     {
         return function (string $fieldName, string | Closure $formName = 'form', ?Closure $checkFieldUsing = null): static {
@@ -167,6 +252,26 @@ class TestsForms
                     "Failed asserting that a field with the name [{$fieldName}] and provided configuration exists on the form with the name [{$formName}] on the [{$livewireClass}] component."
                 );
             }
+
+            return $this;
+        };
+    }
+
+    public function assertFormFieldDoesNotExist(): Closure
+    {
+        return function (string $fieldName, string $formName = 'form'): static {
+            /** @var ComponentContainer $form */
+            $form = $this->instance()->{$formName};
+
+            $fields = $form->getFlatFields(withHidden: false);
+
+            $livewireClass = $this->instance()::class;
+
+            Assert::assertArrayNotHasKey(
+                $fieldName,
+                $fields,
+                "Failed asserting that a field with the name [{$fieldName}] does not exist on the form named [{$formName}] on the [{$livewireClass}] component."
+            );
 
             return $this;
         };

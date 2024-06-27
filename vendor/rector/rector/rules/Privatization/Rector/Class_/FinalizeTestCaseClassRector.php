@@ -41,9 +41,9 @@ class SomeClass extends TestCase
 }
 CODE_SAMPLE
 , <<<'CODE_SAMPLE'
-final use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\TestCase;
 
-class SomeClass extends TestCase
+final class SomeClass extends TestCase
 {
 }
 CODE_SAMPLE
@@ -67,6 +67,9 @@ CODE_SAMPLE
         }
         $className = $this->getName($node);
         if (!\is_string($className)) {
+            return null;
+        }
+        if (\substr_compare($className, 'TestCase', -\strlen('TestCase')) === 0) {
             return null;
         }
         if (!$this->reflectionProvider->hasClass($className)) {

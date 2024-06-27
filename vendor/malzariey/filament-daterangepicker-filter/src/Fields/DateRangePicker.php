@@ -4,11 +4,16 @@ namespace Malzariey\FilamentDaterangepickerFilter\Fields;
 
 use Carbon\CarbonInterface;
 use Closure;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Concerns\{HasAffixes, HasExtraInputAttributes, HasPlaceholder};
 use Filament\Forms\Components\Contracts\HasAffixActions;
 use Filament\Forms\Components\Field;
 use Filament\Support\Concerns\HasExtraAlpineAttributes;
 use Illuminate\View\ComponentAttributeBag;
+use JetBrains\PhpStorm\Deprecated;
+use Malzariey\FilamentDaterangepickerFilter\Enums\DropDirection;
+use Malzariey\FilamentDaterangepickerFilter\Enums\OpenDirection;
+
 
 class DateRangePicker extends Field implements HasAffixActions
 {
@@ -18,16 +23,22 @@ class DateRangePicker extends Field implements HasAffixActions
     use HasExtraAlpineAttributes;
 
     protected string $view = 'filament-daterangepicker-filter::date-range-picker';
-
     protected bool|Closure $alwaysShowCalendar = true;
     protected string|Closure|null $displayFormat = "DD/MM/YYYY";
     protected string|Closure|null $format = 'd/m/Y';
+
+    protected OpenDirection|Closure $opens = OpenDirection::LEFT;
+    protected DropDirection|Closure $drops = DropDirection::AUTO;
     protected array $extraTriggerAttributes = [];
     protected int|null $firstDayOfWeek = 1;
-    protected bool $timePicker = false;
-    protected int $timePickerIncrement = 30;
-    protected bool $autoApply = false;
-    protected bool $linkedCalendars = true;
+    protected bool | Closure $timePicker = false;
+    protected bool | Closure $timePicker24 = false;
+    protected bool | Closure $timePickerSecond = false;
+    protected int | Closure $timePickerIncrement = 30;
+    protected bool | Closure $autoApply = false;
+    protected bool | Closure $linkedCalendars = true;
+    protected bool | Closure $singleCalendar = false;
+
     protected CarbonInterface|string|Closure|null $maxDate = null;
     protected CarbonInterface|string|Closure|null $minDate = null;
     protected CarbonInterface|string|Closure|null $startDate = null;
@@ -35,29 +46,33 @@ class DateRangePicker extends Field implements HasAffixActions
     protected string|Closure|null $timezone = null;
     protected array|Closure $disabledDates = [];
     protected array|Closure $ranges = [];
-    protected bool $useRangeLabels = false;
-    protected bool $disableCustomRange = false;
+    protected array | Closure | null $maxSpan = null;
+    protected bool | Closure $useRangeLabels = false;
+    protected bool|Closure $disableRange = false;
+    protected bool | Closure $disableCustomRange = false;
     protected string $separator = ' - ';
 
 
-    public static function make(string $name) : static
+    public function disableClear(bool|Closure $disable = true) : static
     {
-        $static = parent::make($name);
+        $condition = $this->evaluate($disable);
 
-        $static->suffixIcon('heroicon-m-calendar-days');
+        if ($condition) {
+            $this->suffixAction(fn() => null);
+            $this->suffixIcon('heroicon-m-calendar-days');
 
-        $static->ranges([
-            __('filament-daterangepicker-filter::message.today') => [now(), now()],
-            __('filament-daterangepicker-filter::message.yesterday') => [now()->subDay(), now()->subDay()],
-            __('filament-daterangepicker-filter::message.last_7_days') => [now()->subDays(6), now()],
-            __('filament-daterangepicker-filter::message.last_30_days') => [now()->subDays(29), now()],
-            __('filament-daterangepicker-filter::message.this_month') => [now()->startOfMonth(), now()->endOfMonth()],
-            __('filament-daterangepicker-filter::message.last_month') => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
-            __('filament-daterangepicker-filter::message.this_year') => [now()->startOfYear(), now()->endOfYear()],
-            __('filament-daterangepicker-filter::message.last_year') => [now()->subYear()->startOfYear(), now()->subYear()->endOfYear()],
-        ]);
+        }else{
+            $this->suffixAction(
+                Action::make('clear')
+                    ->label(__('filament-daterangepicker-filter::message.clear'))
+                    ->icon('heroicon-m-calendar-days')
+                    ->action(fn() => $this->clear())
+            );
+            $this->suffixIcon(null);
 
-        return $static;
+        }
+
+        return $this;
     }
 
     public function useRangeLabels(bool $useRangeLabels = true) : static
@@ -67,11 +82,45 @@ class DateRangePicker extends Field implements HasAffixActions
         return $this;
     }
 
-    public function disableCustomRange(bool $disableCustomRange = true) : static
+
+    public function clear()
+    {
+        $this->state(null);
+    }
+
+    public function now() : CarbonInterface|string|Closure
+    {
+        return now()->timezone($this->getTimezone());
+    }
+
+    public function disableCustomRange(bool | Closure $disableCustomRange = true) : static
     {
         $this->disableCustomRange = $disableCustomRange;
 
         return $this;
+    }
+
+    public function disableRanges(bool|Closure $disableRanges = true) : static
+    {
+        $this->disableRange = $disableRanges;
+
+        return $this;
+    }
+
+    public function opens(OpenDirection|Closure $direction) : static
+    {
+        $this->opens = $direction;
+
+        return $this;
+
+    }
+
+    public function drops(DropDirection|Closure $direction) : static
+    {
+        $this->drops = $direction;
+
+        return $this;
+
     }
 
     public function separator(string $separator) : static
@@ -121,28 +170,59 @@ class DateRangePicker extends Field implements HasAffixActions
         return $this;
     }
 
-    public function startDate(CarbonInterface|string|Closure|null $date) : static
+    public function startDate(CarbonInterface|string|Closure|null $date , $enforceIfNull = false) : static
     {
         $this->startDate = $date;
+
+        $this->processDefault($enforceIfNull);
 
         return $this;
     }
 
-    public function endDate(CarbonInterface|string|Closure|null $date) : static
+    public function endDate(CarbonInterface|string|Closure|null $date , $enforceIfNull = false) : static
     {
         $this->endDate = $date;
 
+        $this->processDefault($enforceIfNull);
+
         return $this;
+    }
+
+    public function defaultToday($enforceIfNull = false) : static
+    {
+        $this->startDate = $this->now()->startOfDay();
+        $this->endDate = $this->now()->endOfDay();
+
+        $this->processDefault($enforceIfNull);
+
+        return $this;
+    }
+
+    public function processDefault($enforceIfNull = false): void{
+        $default = null;
+
+        if ($this->getStartDate() != null && $this->getEndDate() != null) {
+            $default = $this->getStartDate()->format($this->getFormat()) . $this->separator . $this->getEndDate()->format($this->getFormat());
+        } else if ($this->getStartDate() != null && $this->getEndDate() == null) {
+            $default = $this->getStartDate()->format($this->getFormat()) . $this->separator . $this->getStartDate()->format($this->getFormat());
+        } else if ($this->getStartDate() == null && $this->getEndDate() != null) {
+            $default = $this->getEndDate()->format($this->getFormat()) . $this->separator . $this->getEndDate()->format($this->getFormat());
+        }
+        $this->default($default);
+
+        if($enforceIfNull) {
+            $this->afterStateHydrated(fn($component, $state) => $state == null ? $component->state($default) : null);
+        }
     }
 
     public function getStartDate()
     {
-        return $this->startDate;
+        return $this->evaluate($this->startDate);
     }
 
     public function getEndDate()
     {
-        return $this->endDate;
+        return $this->evaluate($this->endDate);
     }
 
 
@@ -176,9 +256,26 @@ class DateRangePicker extends Field implements HasAffixActions
         return $this;
     }
 
+    public function maxSpan(array | Closure | null $maxSpan): static
+    {
+        $this->maxSpan = $maxSpan;
+
+        return $this;
+    }
+
     public function getDisplayFormat() : string
     {
         return $this->evaluate($this->displayFormat);
+    }
+
+    public function getOpens() : string
+    {
+        return $this->evaluate($this->opens)->value;
+    }
+
+    public function getDrops() : string
+    {
+        return $this->evaluate($this->drops)->value;
     }
 
     public function getExtraTriggerAttributes() : array
@@ -197,9 +294,21 @@ class DateRangePicker extends Field implements HasAffixActions
         return new ComponentAttributeBag($this->getExtraTriggerAttributes());
     }
 
+    public function getSystemTimezone() : string
+    {
+        return config('app.timezone');
+    }
+
     public function getFirstDayOfWeek() : int
     {
-        return $this->firstDayOfWeek ?? $this->getDefaultFirstDayOfWeek();
+        $day = $this->evaluate($this->firstDayOfWeek);
+        if($day == null){
+            return $this->getDefaultFirstDayOfWeek();
+        }
+        if ($day < 0 || $day > 7) {
+            $day = $this->getDefaultFirstDayOfWeek();
+        }
+        return  $day;
     }
 
     public function getFormat() : string
@@ -222,9 +331,14 @@ class DateRangePicker extends Field implements HasAffixActions
         return $this->evaluate($this->disabledDates);
     }
 
+    public function getDisableRanges() : bool
+    {
+        return $this->evaluate($this->disableRange);
+    }
+
     public function getTimezone() : string
     {
-        return $this->evaluate($this->timezone) ?? config('app.timezone');
+        return $this->evaluate($this->timezone) ?? $this->getSystemTimezone();
     }
 
     protected function getDefaultFirstDayOfWeek() : int
@@ -241,25 +355,65 @@ class DateRangePicker extends Field implements HasAffixActions
 
     public function isAlwaysShowCalendar() : bool
     {
-        if ($this->disableCustomRange) {
+
+        if ( $this->getDisableCustomRange()) {
             return false;
         }
 
-        return $this->alwaysShowCalendar;
+        return $this->evaluate($this->alwaysShowCalendar);
     }
 
-    public function setTimePickerOption(bool $condition = true) : static
+    #[Deprecated(since: '2.5.1')]
+    public function setTimePickerOption(bool | Closure $condition = true) : static
     {
         $this->timePicker = $condition;
 
         return $this;
     }
 
-    public function getTimePickerOption() : string
+    public function timePicker(bool | Closure $condition = true) : static
     {
-        return $this->timePicker ? 'true' : 'false';
+        $this->timePicker = $condition;
+
+        return $this;
     }
 
+    public function timePicker24(bool | Closure $condition = true) : static
+    {
+        $this->timePicker24 = $condition;
+
+        return $this;
+    }
+
+    public function timePickerSecond(bool | Closure $condition = true) : static
+    {
+        $this->timePickerSecond = $condition;
+
+        return $this;
+    }
+
+    #[Deprecated(since: '2.5.1')]
+    public function getTimePickerOption() : bool
+    {
+        return $this->evaluate($this->timePicker);
+    }
+
+    public function getTimePicker() : bool
+    {
+        return $this->evaluate($this->timePicker);
+    }
+
+    public function getTimePicker24() : bool
+    {
+        return $this->evaluate($this->timePicker24);
+    }
+
+    public function getTimePickerSecond() : bool
+    {
+        return $this->evaluate($this->timePickerSecond);
+    }
+
+    #[Deprecated(since: '2.5.1')]
     public function setTimePickerIncrementOption(int $increment = 1) : static
     {
         $this->timePickerIncrement = $increment;
@@ -267,25 +421,52 @@ class DateRangePicker extends Field implements HasAffixActions
         return $this;
     }
 
+    public function timePickerIncrement(int | Closure $increment = 1) : static
+    {
+        $this->timePickerIncrement = $increment;
+
+        return $this;
+    }
+    #[Deprecated(since: '2.5.1')]
+
     public function getTimePickerIncrementOption() : int
     {
-        return $this->timePickerIncrement;
+        return $this->evaluate($this->timePickerIncrement);
     }
 
+    public function getTimePickerIncrement() : int
+    {
+        return $this->evaluate($this->timePickerIncrement);
+    }
 
+    #[Deprecated(since: '2.5.1')]
     public function setAutoApplyOption(bool $condition = true) : static
     {
         $this->autoApply = $condition;
 
         return $this;
     }
-
-    // NOTE: auto apply will not be enabled by daterangepicker.js if timePicker is set
-    public function getAutoApplyOption() : string
+    /**
+     * Does not work with TimePicker
+     */
+    public function autoApply(bool | Closure $condition = true) : static
     {
-        return $this->autoApply ? 'true' : 'false';
+        $this->autoApply = $condition;
+
+        return $this;
     }
 
+    #[Deprecated(since: '2.5.1')]
+    public function getAutoApplyOption() : bool
+    {
+        return $this->autoApply;
+    }
+
+    public function getAutoApply() : bool
+    {
+        return $this->autoApply;
+    }
+    #[Deprecated(since: '2.5.1')]
     public function setLinkedCalendarsOption(bool $condition = true) : static
     {
         $this->linkedCalendars = $condition;
@@ -293,14 +474,56 @@ class DateRangePicker extends Field implements HasAffixActions
         return $this;
     }
 
-    public function getLinkedCalendarsOption() : string
+    public function linkedCalendars(bool | Closure $condition = true) : static
     {
-        return $this->linkedCalendars ? 'true' : 'false';
+        $this->linkedCalendars = $condition;
+
+        return $this;
+    }
+
+    public function singleCalendar(bool | Closure $condition = true) : static
+    {
+        $this->singleCalendar = $condition;
+
+        return $this;
+    }
+
+    #[Deprecated(since: '2.5.1')]
+    public function getLinkedCalendarsOption(): bool
+    {
+        return $this->linkedCalendars;
+    }
+
+    public function getLinkedCalendars(): bool
+    {
+        return $this->evaluate($this->linkedCalendars);
+    }
+
+    public function getSingleCalendar(): bool
+    {
+        return $this->evaluate($this->singleCalendar);
     }
 
     public function getRanges() : ?array
     {
+        if($this->getDisableRanges()){
+            return [];
+        }
+
         $ranges = $this->evaluate($this->ranges);
+
+        if(empty($ranges)){
+            $ranges = [
+                __('filament-daterangepicker-filter::message.today') => [$this->now(), $this->now()],
+                __('filament-daterangepicker-filter::message.yesterday') => [$this->now()->subDay(), $this->now()->subDay()],
+                __('filament-daterangepicker-filter::message.last_7_days') => [$this->now()->subDays(6), $this->now()],
+                __('filament-daterangepicker-filter::message.last_30_days') => [$this->now()->subDays(29), $this->now()],
+                __('filament-daterangepicker-filter::message.this_month') => [$this->now()->startOfMonth(), $this->now()->endOfMonth()],
+                __('filament-daterangepicker-filter::message.last_month') => [$this->now()->subMonth()->startOfMonth(), $this->now()->subMonth()->endOfMonth()],
+                __('filament-daterangepicker-filter::message.this_year') => [$this->now()->startOfYear(), $this->now()->endOfYear()],
+                __('filament-daterangepicker-filter::message.last_year') => [$this->now()->subYear()->startOfYear(), $this->now()->subYear()->endOfYear()],
+            ];
+        }
 
         foreach ($ranges as $key => $dates) {
             $ranges[$key] = array_map(function ($date) {
@@ -311,14 +534,25 @@ class DateRangePicker extends Field implements HasAffixActions
         return $ranges;
     }
 
+    public function getMaxSpan(): ?array
+    {
+        $maxSpan = $this->evaluate($this->maxSpan);
+
+        if (empty($maxSpan)) {
+            return null;
+        }
+
+        return $maxSpan;
+    }
+
     public function getUseRangeLabels() : bool
     {
-        return $this->useRangeLabels;
+        return $this->evaluate($this->useRangeLabels);
     }
 
     public function getDisableCustomRange() : bool
     {
-        return $this->disableCustomRange;
+        return $this->evaluate($this->disableCustomRange);
     }
 
     public function getSeparator() : string
