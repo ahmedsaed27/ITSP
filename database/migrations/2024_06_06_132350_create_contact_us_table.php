@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('company');
             $table->string('phone');
             $table->string('needed');
-            $table->longText('other');
+            $table->longText('other')->nullable();
             $table->timestamps();
         });
     }

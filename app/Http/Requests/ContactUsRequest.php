@@ -30,7 +30,7 @@ class ContactUsRequest extends FormRequest
             'company' => 'required|string',
             'phone' => 'required|numeric',
             'needed' => 'required|string',
-            'other' => 'required|string',
+            'other' => 'nullable',
         ];
     }
 
